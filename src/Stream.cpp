@@ -1,11 +1,15 @@
 ﻿#include "Stream.h"
 
-std::unique_ptr<Stream> Stream::CreateStream(uint64_t client, bool reliable) {
+Stream::~Stream() {
 
 }
 
-std::unique_ptr<Stream> Stream::CreateStream(bool reliable) {
+std::unique_ptr<Stream> Stream::CreateStream(uint64_t client, bool reliable) {
+	return std::unique_ptr<Stream>();
+}
 
+std::unique_ptr<Stream> Stream::CreateStream(bool reliable) {
+	return std::unique_ptr<Stream>();
 }
 
 void Stream::CloseStream(const Stream& stream) {

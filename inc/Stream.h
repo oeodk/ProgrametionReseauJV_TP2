@@ -9,6 +9,13 @@ private:
     uint32_t id;
 
 public:
+    Stream() = default;
+    ~Stream();
+    Stream(const Stream&) = default;
+    Stream& operator=(const Stream&) = default;
+    Stream(Stream&&) = default;
+    Stream& operator=(Stream&&) = default;
+
     std::unique_ptr<Stream> CreateStream(uint64_t client, bool reliable);
     std::unique_ptr<Stream> CreateStream(bool reliable);
 
