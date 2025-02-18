@@ -135,6 +135,20 @@ int Falcon::SendToInternal(const std::string &to, uint16_t port, std::span<const
 
 int Falcon::ReceiveFromInternal(std::string &from, std::span<char, 65535> message)
 {
+    fd_set readfds;
+    FD_ZERO(&readfds);
+    FD_SET(m_socket, &readfds);
+
+    struct timeval timeout;
+    timeout.tv_sec = m_timeout_ms / 1000;
+    timeout.tv_usec = (m_timeout_ms % 1000) * 1000;
+
+    int result = select(m_socket + 1, &readfds, nullptr, nullptr, &timeout);
+    if (result == 0)
+    {
+        return 0;  // Timeout
+    }
+
     struct sockaddr_storage peer_addr;
     socklen_t peer_addr_len = sizeof(struct sockaddr_storage);
     const int read_bytes = recvfrom(m_socket,

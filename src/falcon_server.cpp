@@ -72,7 +72,7 @@ void FalconServer::ThreadListen(FalconServer& server)
 			}
 				break;
 			case DISCONNECT:
-				std::memcpy(&server.m_last_disconnected_client, &buffer[5], sizeof(server.m_last_disconnected_client));
+				memcpy(&server.m_last_disconnected_client, &buffer[5], sizeof(server.m_last_disconnected_client));
 				if (server.m_on_client_disconnect != nullptr)
 				{
 					server.OnClientDisconnected(server.m_on_client_disconnect);
