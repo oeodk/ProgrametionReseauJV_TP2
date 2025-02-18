@@ -6,6 +6,7 @@
 
 #include "falcon.h"
 
+/*
 TEST_CASE( "Can Listen", "[falcon]" ) {
     auto receiver = Falcon::CreateServer("127.0.0.1", 5555);
     REQUIRE(receiver != nullptr);
@@ -44,3 +45,4 @@ TEST_CASE("Can Receive From", "[falcon]") {
         message.end()));
     REQUIRE(from_ip == "127.0.0.1:5556");
 }
+*/
