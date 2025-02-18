@@ -9,7 +9,7 @@ else ()
     set(FALCON_BACKEND src/falcon_posix.cpp)
 endif (WIN32)
 
-add_library(falcon STATIC inc/falcon.h inc/message_type.h inc/falcon_client.h inc/falcon_server.h src/falcon_common.cpp ${FALCON_BACKEND} src/falcon_client.cpp src/falcon_server.cpp)
+add_library(falcon STATIC inc/falcon.h inc/message_type.h inc/falcon_client.h inc/falcon_server.h inc/Stream.h src/falcon_common.cpp ${FALCON_BACKEND} src/falcon_client.cpp src/falcon_server.cpp src/Stream.cpp)
 target_include_directories(falcon PUBLIC inc)
 target_link_libraries(falcon PUBLIC spdlog::spdlog_header_only fmt::fmt-header-only)
 

@@ -58,7 +58,7 @@ void FalconClient::ThreadListen(FalconClient& client)
 				case CONNECT_ACK:
 				{
 					client.m_connected = true;
-					std::memcpy(&client.m_id, &buffer[5], sizeof(client.m_id));
+					memcpy(&client.m_id, &buffer[5], sizeof(client.m_id));
 					if (client.m_on_connect != nullptr)
 					{
 						client.OnConnectionEvent(client.m_on_connect);
