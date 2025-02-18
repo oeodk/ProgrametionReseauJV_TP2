@@ -84,6 +84,7 @@ void FalconClient::ThreadListen(FalconClient& client)
 		if (recv_size > 0)
 		{
 			timeout_timer = std::chrono::steady_clock::now();
+			printf("reveiced");
 			switch (MessageType(buffer[0]))
 			{
 			case CONNECT_ACK:
