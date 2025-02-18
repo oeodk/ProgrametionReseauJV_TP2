@@ -3,8 +3,8 @@
 #include <memory>
 #include <string>
 #include <span>
-
-void hello();
+#include <functional>
+#include <thread>
 
 #ifdef WIN32
     using SocketType = unsigned int;
@@ -12,24 +12,46 @@ void hello();
     using SocketType = int;
 #endif
 
+struct IpPortPair
+{
+    std::string ip;
+    uint16_t port;
+};
+
 class Falcon {
 public:
-    static std::unique_ptr<Falcon> Listen(const std::string& endpoint, uint16_t port);
-    static std::unique_ptr<Falcon> Connect(const std::string& serverIp, uint16_t port);
+
 
     Falcon();
-    ~Falcon();
+    virtual ~Falcon();
     Falcon(const Falcon&) = default;
     Falcon& operator=(const Falcon&) = default;
     Falcon(Falcon&&) = default;
     Falcon& operator=(Falcon&&) = default;
 
+    const uint8_t m_version = 1;
+protected:
     int SendTo(const std::string& to, uint16_t port, std::span<const char> message);
     int ReceiveFrom(std::string& from, std::span<char, 65535> message);
 
+    virtual void CreateServer(uint16_t port);
+    virtual void CreateClient(const std::string& ip);
+
+    std::thread m_listener;
+    bool m_listen = false;
+
+    SocketType m_socket{};
 private:
+    virtual void Listen(uint16_t port) {}
+    virtual void OnClientConnected(std::function<void(uint64_t)> handler) {}
+   
+    virtual void ConnectTo(const std::string& ip, uint16_t port) {}
+    virtual void OnConnectionEvent(std::function<void(bool, uint64_t)> handler) {}
+
+    virtual void OnClientDisconnected(std::function<void(uint64_t)> handler) {} //Server API 
+    virtual void OnDisconnect(std::function<void()> handler) {}  //Client API
+    
     int SendToInternal(const std::string& to, uint16_t port, std::span<const char> message);
     int ReceiveFromInternal(std::string& from, std::span<char, 65535> message);
 
-    SocketType m_socket;
 };

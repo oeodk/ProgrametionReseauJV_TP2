@@ -7,7 +7,7 @@
 #include "falcon.h"
 
 TEST_CASE( "Can Listen", "[falcon]" ) {
-    auto receiver = Falcon::Listen("127.0.0.1", 5555);
+    auto receiver = Falcon::CreateServer("127.0.0.1", 5555);
     REQUIRE(receiver != nullptr);
 }
 
@@ -18,7 +18,7 @@ TEST_CASE( "Can Connect", "[falcon]" ) {
 
 TEST_CASE( "Can Send To", "[falcon]" ) {
     auto sender = Falcon::Connect("127.0.0.1", 5556);
-    auto receiver = Falcon::Listen("127.0.0.1", 5555);
+    auto receiver = Falcon::CreateServer("127.0.0.1", 5555);
     std::string message = "Hello World!";
     std::span data(message.data(), message.size());
     int bytes_sent = sender->SendTo("127.0.0.1", 5555, data);
@@ -27,7 +27,7 @@ TEST_CASE( "Can Send To", "[falcon]" ) {
 
 TEST_CASE("Can Receive From", "[falcon]") {
     auto sender = Falcon::Connect("127.0.0.1", 5556);
-    auto receiver = Falcon::Listen("127.0.0.1", 5555);
+    auto receiver = Falcon::CreateServer("127.0.0.1", 5555);
     std::string message = "Hello World!";
     std::span data(message.data(), message.size());
     int bytes_sent = sender->SendTo("127.0.0.1", 5555, data);
