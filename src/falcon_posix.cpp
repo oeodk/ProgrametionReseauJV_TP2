@@ -124,7 +124,6 @@ int Falcon::ReceiveFromInternal(std::string &from, std::span<char, 65535> messag
     int result = poll(&fds, 1, m_timeout_ms);
     if (result == -1)  
     {
-        std::cerr << "poll() failed: " << strerror(errno) << std::endl;
         return -1;  // Return error
     }
     if (result == 0)
