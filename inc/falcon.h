@@ -5,6 +5,7 @@
 #include <span>
 #include <functional>
 #include <thread>
+#include <cstring>
 
 #ifdef WIN32
     using SocketType = unsigned int;
@@ -41,6 +42,8 @@ protected:
     bool m_listen = false;
 
     SocketType m_socket{};
+
+    int m_timeout_ms = 100;
 private:
     virtual void Listen(uint16_t port) {}
     virtual void OnClientConnected(std::function<void(uint64_t)> handler) {}

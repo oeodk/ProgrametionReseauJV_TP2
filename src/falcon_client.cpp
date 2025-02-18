@@ -4,7 +4,7 @@
 
 using namespace std::chrono_literals;
 
-constexpr std::chrono::microseconds TIMEOUT = 1000ms;
+constexpr std::chrono::microseconds TIMEOUT = 10000ms;
 
 FalconClient::~FalconClient()
 {
@@ -33,53 +33,57 @@ void FalconClient::ConnectTo(const std::string& ip, uint16_t port)
 
 void FalconClient::OnConnectionEvent(std::function<void(bool, uint64_t)> handler)
 {
-	handler(m_connected, m_id);
+	if(handler != nullptr)
+	{
+		handler(m_connected, m_id);
+	}
 }
 
 void FalconClient::OnDisconnect(std::function<void()> handler)
 {
-	handler();
+	if (handler != nullptr)
+	{
+		handler();
+	}
 }
 
 void FalconClient::ThreadListen(FalconClient& client)
 {
+	std::chrono::steady_clock::time_point start = std::chrono::steady_clock::now();
 	while(client.m_listen)
 	{
 		std::array<char, 65535> buffer;
 		std::string other_ip;
 		int recv_size = client.ReceiveFrom(other_ip, buffer);
-		printf("test");
-		if(client.m_connected)
+		if (recv_size != 0)
 		{
-			if (recv_size != 0)
+			switch (MessageType(buffer[0]))
 			{
-				switch (MessageType(buffer[0]))
-				{
-				case CONNECT_ACK:
-				{
-					client.m_connected = true;
-					memcpy(&client.m_id, &buffer[5], sizeof(client.m_id));
-					if (client.m_on_connect != nullptr)
-					{
-						client.OnConnectionEvent(client.m_on_connect);
-					}
-				}
+			case CONNECT_ACK:
+			{
+				client.m_connected = true;
+				memcpy(&client.m_id, &buffer[5], sizeof(client.m_id));
+				client.OnConnectionEvent(client.m_on_connect);
+			}
+			break;
+			case DISCONNECT:
+				client.OnDisconnect(client.m_on_disconnect);
 				break;
-				case DISCONNECT:
-					if (client.m_on_disconnect != nullptr)
-					{
-						client.OnDisconnect(client.m_on_disconnect);
-					}
-					break;
-				default:
-					//stream
-					break;
-				}
+			default:
+				//stream
+				break;
 			}
 		}
 		else
 		{
-			client.OnConnectionEvent(client.m_on_connect);
+			if (!client.m_connected)
+			{
+				if (duration_cast<std::chrono::milliseconds>(std::chrono::steady_clock::now() - start) > TIMEOUT)
+				{
+					client.m_listen = false;
+					client.OnConnectionEvent(client.m_on_connect);
+				}
+			}
 		}
 	}
 }

@@ -27,5 +27,4 @@ private :
     uint64_t m_id;
 
     bool m_connected = false;
-
 };
