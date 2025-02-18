@@ -21,13 +21,15 @@ public :
     std::function<void(uint64_t)> m_on_client_connect = nullptr;
     std::function<void(uint64_t)> m_on_client_disconnect = nullptr;
 
+    uint32_t GetActiveClientCount() const { return m_active_client_count; }
+
 private:
-    std::thread m_listener;
-    bool m_listen = false;
     static void ThreadListen(FalconServer& server);
 
     std::unordered_map<uint64_t, IpPortPair> m_clients;
 
     uint64_t m_new_client{};
     uint64_t m_last_disconnected_client{};
+
+    uint32_t m_active_client_count{};
 };

@@ -22,6 +22,7 @@ void FalconServer::Listen(uint16_t port)
 
 void FalconServer::OnClientConnected(std::function<void(uint64_t)> handler)
 {
+	m_active_client_count++;
 	if(handler != nullptr)
 	{
 		handler(m_new_client);
@@ -30,6 +31,7 @@ void FalconServer::OnClientConnected(std::function<void(uint64_t)> handler)
 
 void FalconServer::OnClientDisconnected(std::function<void(uint64_t)> handler)
 {
+	m_active_client_count--;
 	if (handler != nullptr)
 	{
 		handler(m_last_disconnected_client);
@@ -46,7 +48,7 @@ void FalconServer::ThreadListen(FalconServer& server)
 		int recv_size = server.ReceiveFrom(other_ip, buffer);
 		if (recv_size != 0)
 		{
-			uint64_t client_id;
+			uint64_t client_id = 0;
 			if (MessageType(buffer[0]) != CONNECT)
 			{
 				memcpy(&client_id, &buffer[3], sizeof(client_id));

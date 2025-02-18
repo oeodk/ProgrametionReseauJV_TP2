@@ -42,6 +42,7 @@ void FalconClient::OnConnectionEvent(std::function<void(bool, uint64_t)> handler
 
 void FalconClient::OnDisconnect(std::function<void()> handler)
 {
+	m_connected = false;
 	if (handler != nullptr)
 	{
 		handler();
@@ -94,6 +95,7 @@ void FalconClient::ThreadListen(FalconClient& client)
 			}
 			break;
 			case DISCONNECT:
+				client.m_listen = false;
 				client.OnDisconnect(client.m_on_disconnect);
 				spdlog::debug("Disconnect received");
 				break;
