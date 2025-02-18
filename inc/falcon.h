@@ -5,6 +5,7 @@
 #include <span>
 #include <functional>
 #include <thread>
+#include <cstring>
 
 #ifdef WIN32
     using SocketType = unsigned int;
