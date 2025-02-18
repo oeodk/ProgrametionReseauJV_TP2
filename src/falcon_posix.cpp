@@ -141,12 +141,6 @@ int Falcon::ReceiveFromInternal(std::string &from, std::span<char, 65535> messag
                                     reinterpret_cast<sockaddr*>(&peer_addr),
                                     &peer_addr_len);
 
-    if (read_bytes == -1)  
-    {
-        std::cerr << "recvfrom() failed: " << strerror(errno) << std::endl;
-        return -1;  // Return error
-    }
-
     // Assign only if recvfrom was successful
     from = IpToString(reinterpret_cast<const sockaddr*>(&peer_addr));
 
