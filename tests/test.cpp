@@ -33,8 +33,7 @@ TEST_CASE( "Can Connect", "[falcon client]" ) {
     FalconClient client;
     client.ConnectTo("127.0.0.1", 5555);
 
-    std::this_thread::sleep_for(500ms);
-
+    std::this_thread::sleep_for(100ms);
     REQUIRE(client.IsConnected());
 }
 
@@ -45,8 +44,9 @@ TEST_CASE("Disconnection from server death", "[falcon client]") {
         server.Listen(5555);
 
         client.ConnectTo("127.0.0.1", 5555);
-    }
-    std::this_thread::sleep_for(1s);
+        std::this_thread::sleep_for(100ms);
+    }    
+    std::this_thread::sleep_for(1100ms);
 
     REQUIRE(client.IsConnected() == false);
 }
@@ -57,7 +57,8 @@ TEST_CASE("Client count updated", "[falcon server]") {
 
     FalconClient client;
     client.ConnectTo("127.0.0.1", 5555);
-    
+    std::this_thread::sleep_for(100ms);
+
     REQUIRE(server.GetActiveClientCount() == 1);
 }
 
@@ -68,8 +69,9 @@ TEST_CASE("Disconnection from client death", "[falcon server]") {
 
         FalconClient client;
         client.ConnectTo("127.0.0.1", 5555);
+        std::this_thread::sleep_for(100ms);
     }
-    std::this_thread::sleep_for(1s);
+    std::this_thread::sleep_for(1100ms);
 
     REQUIRE(server.GetActiveClientCount() == 0);
 }

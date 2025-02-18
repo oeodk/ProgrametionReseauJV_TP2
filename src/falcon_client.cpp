@@ -9,7 +9,7 @@ constexpr std::chrono::microseconds TIMEOUT = 1000ms;
 
 FalconClient::~FalconClient()
 {
-	m_listen = true;
+	m_listen = false;
 	m_listener.join();
 }
 
@@ -81,9 +81,9 @@ void FalconClient::ThreadListen(FalconClient& client)
 		}
 
 		ping_id++;
-		if (recv_size != 0)
+		if (recv_size > 0)
 		{
-			timeout_timer = std::chrono::steady_clock::now();;
+			timeout_timer = std::chrono::steady_clock::now();
 			switch (MessageType(buffer[0]))
 			{
 			case CONNECT_ACK:
@@ -123,6 +123,7 @@ void FalconClient::ThreadListen(FalconClient& client)
 			}
 			else
 			{
+				auto a = duration_cast<std::chrono::milliseconds>(std::chrono::steady_clock::now() - timeout_timer);
 				if (duration_cast<std::chrono::milliseconds>(std::chrono::steady_clock::now() - timeout_timer) > TIMEOUT)
 				{
 					client.m_listen = false;

@@ -46,13 +46,16 @@ void FalconServer::ThreadListen(FalconServer& server)
 		std::array<char, 65535> buffer;
 		std::string other_ip;
 		int recv_size = server.ReceiveFrom(other_ip, buffer);
-		if (recv_size != 0)
+		if (recv_size > 0)
 		{
 			uint64_t client_id = 0;
 			if (MessageType(buffer[0]) != CONNECT)
 			{
 				memcpy(&client_id, &buffer[3], sizeof(client_id));
-				client_timeout.at(client_id) = std::chrono::steady_clock::now();
+				if(client_timeout.contains(client_id))
+				{
+					client_timeout.at(client_id) = std::chrono::steady_clock::now();
+				}
 			}
 
 			switch (MessageType(buffer[0]))
