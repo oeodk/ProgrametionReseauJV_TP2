@@ -93,7 +93,6 @@ TEST_CASE("Connection kept thanks to Ping / Pong", "[falcon client]")
 TEST_CASE("Connection kept thanks to Ping / Pong", "[falcon server]")
 {
     FalconServer server;
-    
     server.Listen(5555);
 
     FalconClient client;
