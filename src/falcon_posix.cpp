@@ -95,7 +95,7 @@ void Falcon::CreateClient(const std::string& serverIp)
     }
     sockaddr local_endpoint = StringToIp(serverIp, 0);
     m_socket = socket(local_endpoint.sa_family,
-        SOCK_DGRAM | SOCK_NONBLOCK | SOCK_CLOEXEC,
+        SOCK_DGRAM,
         IPPROTO_UDP);
     if (int error = bind(m_socket, &local_endpoint, sizeof(local_endpoint)); error != 0)
     {
