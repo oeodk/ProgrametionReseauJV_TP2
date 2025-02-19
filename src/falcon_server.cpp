@@ -2,8 +2,10 @@
 #include "message_type.h"
 #include <array>
 #include "spdlog/spdlog.h"
+using namespace std::chrono_literals;
 
 inline static uint64_t usable_id = 0;
+constexpr std::chrono::microseconds TIMEOUT = 1000ms;
 
 FalconServer::~FalconServer()
 {
@@ -20,24 +22,42 @@ void FalconServer::Listen(uint16_t port)
 
 void FalconServer::OnClientConnected(std::function<void(uint64_t)> handler)
 {
-	handler(m_new_client);
+	m_active_client_count++;
+	if(handler != nullptr)
+	{
+		handler(m_new_client);
+	}
 }
 
 void FalconServer::OnClientDisconnected(std::function<void(uint64_t)> handler)
 {
-	handler(m_last_disconnected_client);
+	m_active_client_count--;
+	if (handler != nullptr)
+	{
+		handler(m_last_disconnected_client);
+	}
 }
 
 void FalconServer::ThreadListen(FalconServer& server)
 {
+	std::unordered_map<uint64_t, std::chrono::steady_clock::time_point> client_timeout;
 	while (server.m_listen)
 	{
 		std::array<char, 65535> buffer;
 		std::string other_ip;
 		int recv_size = server.ReceiveFrom(other_ip, buffer);
-		if (recv_size != 0)
+		if (recv_size > 0)
 		{
-			spdlog::debug(buffer[0]);
+			uint64_t client_id = 0;
+			if (MessageType(buffer[0]) != CONNECT)
+			{
+				memcpy(&client_id, &buffer[3], sizeof(client_id));
+				if(client_timeout.contains(client_id))
+				{
+					client_timeout.at(client_id) = std::chrono::steady_clock::now();
+				}
+			}
+
 			switch (MessageType(buffer[0]))
 			{
 			case CONNECT:
@@ -51,37 +71,81 @@ void FalconServer::ThreadListen(FalconServer& server)
 					std::string port_str = other_ip.substr(++pos);
 					port = atoi(port_str.c_str());
 				}				
+
 				server.m_new_client = usable_id++;
+
+				spdlog::debug("New client " + std::to_string(server.m_new_client));
+
+				client_timeout.insert({ server.m_new_client, std::chrono::steady_clock::now() });
 
 				server.m_clients.insert({ server.m_new_client , {ip, port} });
 
 				std::string ack_message;
-				const uint32_t msg_size = 14;
+				const uint16_t msg_size = 12;
 				ack_message.resize(msg_size);
 
 				ack_message[0] = CONNECT_ACK;
 				memcpy(&ack_message[1], &msg_size, sizeof(msg_size));
-				memcpy(&ack_message[5], &server.m_new_client, sizeof(server.m_new_client));
-				memcpy(&ack_message[13], &server.m_version, sizeof(server.m_version));
+				memcpy(&ack_message[3], &server.m_new_client, sizeof(server.m_new_client));
+				memcpy(&ack_message[11], &server.m_version, sizeof(server.m_version));
 
 				server.SendTo(server.m_clients.at(server.m_new_client).ip, server.m_clients.at(server.m_new_client).port, ack_message);
-				if (server.m_on_client_connect != nullptr)
-				{
-					server.OnClientConnected(server.m_on_client_connect);
-				}
+				server.OnClientConnected(server.m_on_client_connect);
+				
 			}
 				break;
 			case DISCONNECT:
-				memcpy(&server.m_last_disconnected_client, &buffer[5], sizeof(server.m_last_disconnected_client));
-				if (server.m_on_client_disconnect != nullptr)
-				{
-					server.OnClientDisconnected(server.m_on_client_disconnect);
-				}
+				server.m_last_disconnected_client = client_id;
+				spdlog::debug("Disconnection from " + std::to_string(server.m_last_disconnected_client));
+				server.OnClientDisconnected(server.m_on_client_disconnect);
+				break;
+			case PING:
+			{
+				spdlog::debug("Ping received from " + std::to_string(client_id));
+
+				std::string pong_msg;
+				std::chrono::system_clock::time_point time = std::chrono::system_clock::now();;
+				const uint16_t msg_size = 13 + sizeof(time);
+				pong_msg.resize(msg_size);
+
+				uint16_t pong_id;
+				memcpy(&pong_id, &buffer[11], sizeof(pong_id));
+
+				pong_msg[0] = PONG;
+				memcpy(&pong_msg[1], &msg_size, sizeof(msg_size));
+				memcpy(&pong_msg[3], &client_id, sizeof(client_id));
+				memcpy(&pong_msg[11], &pong_id, sizeof(pong_id));
+				memcpy(&pong_msg[13], &time, sizeof(time));
+				server.SendTo(server.m_clients.at(client_id).ip, server.m_clients.at(client_id).port, pong_msg);
+			}
 				break;
 			default:
+			{
+				spdlog::debug("Stream received" + std::to_string(client_id));
+			}
 				//stream
 				break;
 			}
+			
+
+		}
+		std::vector<uint64_t> disconnected_client;
+		disconnected_client.reserve(client_timeout.size());
+		for (const auto& pair : client_timeout)
+		{
+			if (duration_cast<std::chrono::milliseconds>(std::chrono::steady_clock::now() - pair.second) > TIMEOUT)
+			{
+				server.m_last_disconnected_client = pair.first;
+				disconnected_client.push_back(pair.first);
+
+				spdlog::debug("Client " + std::to_string(pair.first)+  " removed because of inactivity");
+
+				server.OnClientDisconnected(server.m_on_client_disconnect);
+			}
+		}
+		for (auto& id : disconnected_client)
+		{
+			client_timeout.erase(id);
 		}
 	}
 }

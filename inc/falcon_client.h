@@ -20,6 +20,7 @@ public :
     std::function<void(bool, uint64_t)> m_on_connect = nullptr;
     std::function<void()> m_on_disconnect = nullptr;
 
+    bool IsConnected() const { return m_connected; }
 private :    
     static void ThreadListen(FalconClient& client);
 
