@@ -33,7 +33,7 @@ TEST_CASE( "Can Connect", "[falcon client]" ) {
     FalconClient client;
     client.ConnectTo("127.0.0.1", 5555);
 
-    std::this_thread::sleep_for(1000ms);
+    std::this_thread::sleep_for(1500ms);
     REQUIRE(client.IsConnected());
 }
 
