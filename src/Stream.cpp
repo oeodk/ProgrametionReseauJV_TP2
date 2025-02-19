@@ -70,13 +70,10 @@ void Stream::SendDataPart(uint8_t part_id, uint8_t part_total, std::span<const c
 	current_pos += sizeof(stream_id);
 
 	memcpy(&message[current_pos], &data_size, sizeof(data_size));
-	m_msg_size_index = current_pos;
 
 	current_pos += sizeof(data_size);
 
 	memcpy(&message[current_pos], &flags, sizeof(flags));
-	m_flag_index = current_pos;
-	current_pos += sizeof(flags);
 
 	memcpy(&message[current_pos], &part_id, sizeof(part_id));
 	current_pos += sizeof(part_id);
@@ -97,8 +94,8 @@ void Stream::SendDataPart(uint8_t part_id, uint8_t part_total, std::span<const c
 void Stream::OnDataReceived(std::span<const char> data) {
 	
 	uint16_t data_size;
-	memcpy(&data_size, &data[m_msg_size_index], sizeof(uint16_t));
-	memcpy(&flags, &data[m_flag_index], sizeof(uint16_t));
+	memcpy(&data_size, &data[15], sizeof(uint16_t));
+	memcpy(&flags, &data[17], sizeof(uint16_t));
 	
 	std::string message;
 

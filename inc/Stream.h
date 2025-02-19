@@ -16,9 +16,6 @@ private:
     IpPortPair target;
     Falcon* socket;
 
-    int m_msg_size_index;
-    int m_flag_index;
-
 public:
     Stream(uint32_t stream_id, uint64_t client_uuid, IpPortPair target, Falcon* socket);
     ~Stream();

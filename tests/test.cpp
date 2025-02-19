@@ -200,7 +200,7 @@ TEST_CASE("Can close stream", "[falcon]")
     REQUIRE(serverStreams.contains(client.GetId()));
     
     REQUIRE(serverStreams.at(client.GetId()).contains(streamId));
-    auto serverStream = serverStreams.at(client.GetId()).at(streamId).get();
+    auto serverStream = serverStreams.at(client.GetId()).at(streamId);
     
     server.CloseStream(*serverStream);
     std::this_thread::sleep_for(500ms);

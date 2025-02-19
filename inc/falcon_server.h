@@ -50,6 +50,7 @@ private:
     std::unordered_map<uint64_t, std::map<uint32_t, std::span<const char>>> m_streams_ack;
     uint64_t m_new_client{};
     uint64_t m_last_disconnected_client{};
+    std::unordered_map<uint64_t, std::vector<std::unique_ptr<Stream>>> m_local_streams;
 
     uint32_t m_active_client_count{};
 };

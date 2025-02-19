@@ -53,6 +53,8 @@ void FalconClient::OnDisconnect(std::function<void()> handler)
 	}
 }
 
+
+
 void FalconClient::SendData(std::span<const char> data, uint32_t stream_id)
 { 
 	if(m_streams.contains(stream_id))
@@ -126,15 +128,24 @@ void FalconClient::ThreadListen(FalconClient& client)
 				uint32_t stream_id;
 				memcpy(&stream_id, &buffer[11], sizeof(stream_id));
 
-				client.MakeStream(stream_id, stream_id & 1 << 31);
+				client.m_local_streams.emplace_back(client.MakeStream(stream_id, stream_id & 1 << 31));
 			}
 			break;
 			case CLOSE_STREAM:
 			{
 				uint32_t stream_id;
 				memcpy(&stream_id, &buffer[11], sizeof(stream_id));
+				for (size_t i = 0; i < client.m_local_streams.size(); i++)
+				{
+					if (client.m_local_streams[i]->GetStreamID() == stream_id)
+					{
+						client.m_local_streams.erase(client.m_local_streams.begin() + i);
+						break;
+					}
+				}
 
 				client.m_streams.erase(stream_id);
+
 			}
 			break;
 			case DATA:

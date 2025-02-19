@@ -4,6 +4,7 @@
 #include "Stream.h"
 #include <chrono>
 #include <map>
+#include <list>
 
 class FalconClient : 
 	public Falcon
@@ -23,8 +24,6 @@ public :
     std::function<void(bool, uint64_t)> m_on_connect = nullptr;
     std::function<void()> m_on_disconnect = nullptr;
 
-    std::unique_ptr<Stream> CreateStream(bool reliable);
-
     bool IsConnected() const { return m_connected; }
 
     uint32_t m_lastUsedStreamID = 0;
@@ -37,8 +36,11 @@ public :
     const std::map<uint32_t, Stream*>& GetStreams() const { return m_streams; }
     const std::map<uint32_t, std::span<const char>>& GetStreamsAck() const { return m_streams_ack; }
 
+    std::unique_ptr<Stream> CreateStream(bool reliable);
 private :    
     std::unique_ptr<Stream> MakeStream(uint32_t stream_id, bool reliable);
+
+    std::vector<std::unique_ptr<Stream>> m_local_streams;
 
     static void ThreadListen(FalconClient& client);
 
