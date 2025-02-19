@@ -105,6 +105,17 @@ void Falcon::CreateClient(const std::string& serverIp)
 
 int Falcon::SendToInternal(const std::string &to, uint16_t port, std::span<const char> message)
 {
+	struct pollfd fds;
+    fds.fd = m_socket;
+    fds.events = POLLIN;  // Check for data available to read
+
+    int result = poll(&fds, 1, m_timeout_ms);  
+	if (result < 1)
+    {
+        return 0;  // Timeout
+    }
+	
+	
     const sockaddr destination = StringToIp(to, port);
     int error = sendto(m_socket,
         message.data(),
@@ -117,16 +128,16 @@ int Falcon::SendToInternal(const std::string &to, uint16_t port, std::span<const
 
 int Falcon::ReceiveFromInternal(std::string &from, std::span<char, 65535> message)
 {
-    //struct pollfd fds;
-    //fds.fd = m_socket;
-    //fds.events = POLLIN;  // Check for data available to read
-	//
-    //int result = poll(&fds, 1, m_timeout_ms);  
-	//if (result < 1)
-    //{
-    //    return 0;  // Timeout
-    //}
-	//
+    struct pollfd fds;
+    fds.fd = m_socket;
+    fds.events = POLLIN;  // Check for data available to read
+
+    int result = poll(&fds, 1, m_timeout_ms);  
+	if (result < 1)
+    {
+        return 0;  // Timeout
+    }
+	
     struct sockaddr_storage peer_addr;
     socklen_t peer_addr_len = sizeof(struct sockaddr_storage);
     const int read_bytes = recvfrom(m_socket,
