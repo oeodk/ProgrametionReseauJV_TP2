@@ -24,6 +24,11 @@ public :
     std::unique_ptr<Stream> CreateStream(bool reliable);
 
     bool IsConnected() const { return m_connected; }
+
+    uint32_t m_lastUsedStreamID = 0;
+    uint32_t GetNewStreamID(bool reliable);
+
+    uint64_t GetId() const { return m_id; }
 private :    
     static void ThreadListen(FalconClient& client);
 

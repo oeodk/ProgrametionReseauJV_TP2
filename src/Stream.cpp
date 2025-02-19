@@ -99,28 +99,25 @@ void Stream::OnDataReceived(std::span<const char> data) {
 	memcpy(&data_size, &data[m_msg_size_index], sizeof(uint16_t));
 	memcpy(&flags, &data[m_flag_index], sizeof(uint16_t));
 	
-	
-	if (stream_id & (1 << 31))
-	{
-		std::string message;
+	std::string message;
 
-		const uint16_t message_size = data_size + 7;
-		message.resize(message_size);
-		int current_pos = 0;
+	const uint16_t message_size = data_size + 7;
+	message.resize(message_size);
+	int current_pos = 0;
 
-		message[current_pos] = DATA_ACK;
-		current_pos += sizeof(DATA);
+	message[current_pos] = DATA_ACK;
+	current_pos += sizeof(DATA);
 
-		memcpy(&message[current_pos], &message_size, sizeof(message_size));
-		current_pos += sizeof(message_size);
+	memcpy(&message[current_pos], &message_size, sizeof(message_size));
+	current_pos += sizeof(message_size);
 
-		memcpy(&message[current_pos], &client_uuid, sizeof(client_uuid));
-		current_pos += sizeof(client_uuid);
+	memcpy(&message[current_pos], &client_uuid, sizeof(client_uuid));
+	current_pos += sizeof(client_uuid);
 
-		memcpy(&message[current_pos], &data, sizeof(data));
+	memcpy(&message[current_pos], &data, sizeof(data));
 
-		socket->SendTo(target.ip, target.port, message);
-	}
+	socket->SendTo(target.ip, target.port, message);
+
 	memcpy(&data, &data, sizeof(data_size));
 
 }

@@ -39,6 +39,8 @@ public:
     void SendData(std::span<const char> data);
     void OnDataReceived(std::span<const char> data);
 
+    uint32_t GetId() const { return stream_id; }
+    Falcon* getSocket() const { return socket; }
 protected:
     void SendDataPart(uint8_t part_id, uint8_t part_total, std::span<const char> data);
 };

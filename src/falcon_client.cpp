@@ -144,14 +144,36 @@ void FalconClient::ThreadListen(FalconClient& client)
 }
 
 std::unique_ptr<Stream> FalconClient::CreateStream(bool reliable) {
+	uint32_t stream_id = GetNewStreamID(reliable);
+
 	std::unique_ptr<Stream> stream = std::make_unique<Stream>(
-		GetNewStreamID(reliable),
+		stream_id,
 		m_id,
 		server,
 		this
 	);
 
-	// Envoyer trame
+	uint16_t msg_size = 11;
+	std::string message;
+	message.resize(msg_size);
+	
+	message[0] = CREATE_STREAM;
+	memcpy(&message[1], &msg_size, sizeof(msg_size));
+	memcpy(&message[3], &m_id, sizeof(m_id));
+	memcpy(&message[7], &stream_id, sizeof(stream_id));
+
+	SendTo(server.ip, server.port, message);
 
 	return stream;
+}
+
+uint32_t FalconClient::GetNewStreamID(bool reliable)
+{
+	uint32_t id = m_lastUsedStreamID;
+	m_lastUsedStreamID++;
+
+	if (reliable)
+		id = id & (1 << 31);
+
+	return id;
 }

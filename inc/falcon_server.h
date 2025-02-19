@@ -28,6 +28,8 @@ public :
     std::unique_ptr<Stream> CreateStream(uint64_t client, bool reliable);
     void CloseStream(const Stream& stream);
 
+    std::unordered_map<uint64_t, uint32_t> m_lastUsedStreamID;
+    uint32_t GetNewStreamID(bool reliable, uint64_t client);
 private:
     static void ThreadListen(FalconServer& server);
 
