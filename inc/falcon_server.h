@@ -31,6 +31,9 @@ public :
 
     std::unordered_map<uint64_t, uint32_t> m_lastUsedStreamID;
     uint32_t GetNewStreamID(bool reliable, uint64_t client);
+
+    void SendData(std::span<const char> data, uint64_t client_id, uint32_t stream_id);
+
 private:
     static void ThreadListen(FalconServer& server);
 

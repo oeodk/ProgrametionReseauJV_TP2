@@ -32,7 +32,7 @@ public :
 
     uint64_t GetId() const { return m_id; }
 
-    void SendData(std::span<const char> data);
+    void SendData(std::span<const char> data, uint32_t stream_id);
 private :    
     static void ThreadListen(FalconClient& client);
 
