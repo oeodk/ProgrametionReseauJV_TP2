@@ -207,7 +207,7 @@ std::unique_ptr<Stream> FalconClient::CreateStream(bool reliable) {
 	message[0] = CREATE_STREAM;
 	memcpy(&message[1], &msg_size, sizeof(msg_size));
 	memcpy(&message[3], &m_id, sizeof(m_id));
-	memcpy(&message[7], &stream_id, sizeof(stream_id));
+	memcpy(&message[11], &stream_id, sizeof(stream_id));
 
 	SendTo(server.ip, server.port, message);
 

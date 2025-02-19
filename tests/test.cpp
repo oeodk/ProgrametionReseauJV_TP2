@@ -169,13 +169,16 @@ TEST_CASE("Can close stream", "[falcon]")
 
     FalconClient client;
     client.ConnectTo("127.0.0.1", 5555);
+    std::this_thread::sleep_for(500ms);
 
     auto stream = client.CreateStream(true);
+    std::this_thread::sleep_for(500ms);
+
     auto streamId = stream->GetStreamID();
 
     auto& serverStreams = server.GetStreams();
 
-    REQUIRE(serverStreams.find(client.GetId()) != serverStreams.end());
+    REQUIRE(serverStreams.contains(client.GetId()));
     
     auto serverStream = serverStreams.find(client.GetId())->second.begin();
     REQUIRE(serverStream->first == streamId);

@@ -137,7 +137,7 @@ void FalconServer::ThreadListen(FalconServer& server)
 			case CREATE_STREAM:
 			{
 				uint32_t stream_id;
-				memcpy(&stream_id, &buffer[7], sizeof(stream_id));
+				memcpy(&stream_id, &buffer[11], sizeof(stream_id));
 
 				server.m_streams[client_id].insert({ stream_id,  server.CreateStream(client_id, (stream_id & 1 << 31)) });
 			}
@@ -237,7 +237,7 @@ std::unique_ptr<Stream> FalconServer::CreateStream(uint64_t client, bool reliabl
 		message[0] = CREATE_STREAM;
 		memcpy(&message[1], &msg_size, sizeof(msg_size));
 		memcpy(&message[3], &client, sizeof(client));
-		memcpy(&message[7], &stream_id, sizeof(stream_id));
+		memcpy(&message[11], &stream_id, sizeof(stream_id));
 
 		SendTo(m_clients.at(client).ip, m_clients.at(client).port, message);
 
