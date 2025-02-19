@@ -122,7 +122,7 @@ int Falcon::ReceiveFromInternal(std::string &from, std::span<char, 65535> messag
     fds.events = POLLIN;  // Check for data available to read
 
     int result = poll(&fds, 1, m_timeout_ms);  
-	if (result > 0)
+	if (result < 1)
     {
         return 0;  // Timeout
     }
