@@ -30,7 +30,7 @@ void Stream::SetFlag(int flag_id, bool value) {
 
 bool Stream::GetFlag(int flag_id)
 {
-	if (flag_id < 0 || flag_id >= 16) return;
+	if (flag_id < 0 || flag_id >= 16) return false;
 	uint16_t mask;
 	mask = 1 << flag_id;
 	return flags & mask;

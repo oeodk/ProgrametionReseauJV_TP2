@@ -157,6 +157,7 @@ void FalconServer::ThreadListen(FalconServer& server)
 				server.m_streams.at(client_id).at(stream_id)->OnDataReceived(buffer);
 			}
 			case DATA_ACK:
+				//if(server)
 				break;
 			}
 			
@@ -188,6 +189,7 @@ void FalconServer::SendData(std::span<const char> data, uint64_t client_id, uint
 	if (m_streams.at(client_id).at(stream_id))
 	{
 		m_streams.at(client_id).at(stream_id)->SendData(data);
+		m_stream_ack[client_id].insert({ stream_id, false });
 	}
 }
 
