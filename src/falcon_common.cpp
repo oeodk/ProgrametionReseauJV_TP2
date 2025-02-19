@@ -9,3 +9,13 @@ int Falcon::ReceiveFrom(std::string& from, const std::span<char, 65535> message)
 {
     return ReceiveFromInternal(from, message);
 }
+
+uint32_t Falcon::GetNewStreamID(bool reliable) {
+    uint32_t id = lastUsedStreamID;
+    lastUsedStreamID++;
+
+    if (reliable)
+        id = id & (1 << 31);
+
+    return id;
+}

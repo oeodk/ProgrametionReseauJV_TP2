@@ -1,6 +1,7 @@
 #pragma once
 
 #include "falcon.h"
+#include "Stream.h"
 #include <thread>
 
 class FalconServer :
@@ -22,6 +23,9 @@ public :
     std::function<void(uint64_t)> m_on_client_disconnect = nullptr;
 
     uint32_t GetActiveClientCount() const { return m_active_client_count; }
+
+    std::unique_ptr<Stream> CreateStream(uint64_t client, bool reliable);
+    void CloseStream(const Stream& stream);
 
 private:
     static void ThreadListen(FalconServer& server);

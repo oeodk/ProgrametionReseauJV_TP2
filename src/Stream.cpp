@@ -4,6 +4,10 @@
 
 constexpr int HEADER_SIZE = 184;
 
+Stream::Stream(uint32_t _stream_id, uint64_t _client_uuid, IpPortPair _target, Falcon* _socket):
+	stream_id(_stream_id), client_uuid(_client_uuid), target(_target), socket(_socket)
+{}
+
 Stream::~Stream() {
 
 }
@@ -24,17 +28,6 @@ void Stream::SetFlag(int flag_id, bool value) {
 		flags = flags & ~(1 << flag_id);
 }
 
-std::unique_ptr<Stream> Stream::CreateStream(uint64_t client, bool reliable) {
-	return std::unique_ptr<Stream>();
-}
-
-std::unique_ptr<Stream> Stream::CreateStream(bool reliable) {
-	return std::unique_ptr<Stream>();
-}
-
-void Stream::CloseStream(const Stream& stream) {
-
-}
 
 void Stream::SendData(std::span<const char> data) {
 	int max_packet_size = 65536 - HEADER_SIZE;

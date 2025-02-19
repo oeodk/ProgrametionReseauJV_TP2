@@ -1,6 +1,7 @@
 #pragma once
 
 #include "falcon.h"
+#include "Stream.h"
 #include <chrono>
 class FalconClient : 
 	public Falcon
@@ -19,6 +20,8 @@ public :
 
     std::function<void(bool, uint64_t)> m_on_connect = nullptr;
     std::function<void()> m_on_disconnect = nullptr;
+
+    std::unique_ptr<Stream> CreateStream(bool reliable);
 
     bool IsConnected() const { return m_connected; }
 private :    

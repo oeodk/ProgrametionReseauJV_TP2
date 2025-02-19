@@ -149,3 +149,20 @@ void FalconServer::ThreadListen(FalconServer& server)
 		}
 	}
 }
+
+std::unique_ptr<Stream> FalconServer::CreateStream(uint64_t client, bool reliable) {
+	std::unique_ptr<Stream> stream = std::make_unique<Stream>(
+		GetNewStreamID(reliable),
+		client,
+		this->m_clients.at(client),
+		this
+	);
+
+	// Envoyer trame
+
+	return stream;
+}
+
+void FalconServer::CloseStream(const Stream& stream) {
+
+}

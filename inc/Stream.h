@@ -17,7 +17,7 @@ private:
     Falcon* socket;
 
 public:
-    Stream() = default;
+    Stream(uint32_t stream_id, uint64_t client_uuid, IpPortPair target, Falcon* socket);
     ~Stream();
     Stream(const Stream&) = default;
     Stream& operator=(const Stream&) = default;
@@ -26,11 +26,6 @@ public:
 
     uint16_t GetNewMessageID();
     void SetFlag(int flag_id, bool value);
-
-    std::unique_ptr<Stream> CreateStream(uint64_t client, bool reliable);
-    std::unique_ptr<Stream> CreateStream(bool reliable);
-
-    void CloseStream(const Stream& stream);
 
     void SendData(std::span<const char> data);
     void OnDataReceived(std::span<const char> data);
