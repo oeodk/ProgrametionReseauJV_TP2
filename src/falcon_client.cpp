@@ -127,6 +127,7 @@ void FalconClient::ThreadListen(FalconClient& client)
 
 				client.m_streams.erase(stream_id);
 			}
+			break;
 			case DATA:
 			{
 				uint32_t stream_id;

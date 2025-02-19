@@ -153,3 +153,26 @@ TEST_CASE("Can create a stream", "[falcon server]")
     REQUIRE(streamReliable->GetStreamID() >= (1 << 31));
     REQUIRE(streamUnreliable->GetStreamID() < (1 << 31));
 }
+
+TEST_CASE("Can close stream", "[falcon]")
+{
+    FalconServer server;
+
+    server.Listen(5555);
+
+    FalconClient client;
+    client.ConnectTo("127.0.0.1", 5555);
+
+    auto stream = client.CreateStream(true);
+    auto streamId = stream->GetStreamID();
+
+    auto& serverStreams = server.GetStreams();
+
+    REQUIRE(serverStreams.find(client.GetId()) != serverStreams.end());
+    
+    auto serverStream = serverStreams.find(client.GetId())->second.begin();
+    REQUIRE(serverStream->first == streamId);
+    
+    server.CloseStream(*serverStream->second);
+    REQUIRE(client.GetStreams().find(streamId) == client.GetStreams().end());
+}
