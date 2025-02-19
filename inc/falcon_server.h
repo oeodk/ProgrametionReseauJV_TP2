@@ -35,7 +35,7 @@ public :
 
     void SendData(std::span<const char> data, uint64_t client_id, uint32_t stream_id);
 
-    const std::unordered_map<uint64_t, std::map<uint32_t, std::unique_ptr<Stream>>>& GetStreams() const { return m_streams; }
+    const std::unordered_map<uint64_t, std::map<uint32_t, Stream*>>& GetStreams() const { return m_streams; }
     const std::unordered_map<uint64_t, std::map<uint32_t, std::span<const char>>>& GetStreamsAck() const { return m_streams_ack; }
 
 private:
@@ -46,7 +46,7 @@ private:
     uint64_t usable_id = 0;
 
     std::unordered_map<uint64_t, IpPortPair> m_clients;
-    std::unordered_map<uint64_t, std::map<uint32_t, std::unique_ptr<Stream>>> m_streams;
+    std::unordered_map<uint64_t, std::map<uint32_t, Stream*>> m_streams;
     std::unordered_map<uint64_t, std::map<uint32_t, std::span<const char>>> m_streams_ack;
     uint64_t m_new_client{};
     uint64_t m_last_disconnected_client{};

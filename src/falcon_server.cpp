@@ -139,7 +139,7 @@ void FalconServer::ThreadListen(FalconServer& server)
 				uint32_t stream_id;
 				memcpy(&stream_id, &buffer[11], sizeof(stream_id));
 
-				server.m_streams[client_id].insert({ stream_id,  server.MakeStream(stream_id, client_id, (stream_id & 1 << 31)) });
+				server.MakeStream(stream_id, client_id, (stream_id & 1 << 31));
 			}
 				break;
 			case CLOSE_STREAM:
@@ -221,12 +221,14 @@ void FalconServer::SendData(std::span<const char> data, uint64_t client_id, uint
 
 std::unique_ptr<Stream> FalconServer::MakeStream(uint32_t stream_id, uint64_t client, bool reliable)
 {
-	return std::make_unique<Stream>(
+	std::unique_ptr<Stream> stream = std::make_unique<Stream>(
 		stream_id,
 		client,
 		m_clients.at(client),
 		this
 	);
+	m_streams.at(client).insert({ stream_id, stream.get() });
+	return stream;
 }
 
 std::unique_ptr<Stream> FalconServer::CreateStream(uint64_t client, bool reliable) {
