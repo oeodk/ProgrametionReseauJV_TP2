@@ -1,4 +1,5 @@
 #include "falcon_server.h"
+#include "falcon_client.h"
 #include "message_type.h"
 #include <array>
 #include "spdlog/spdlog.h"
@@ -36,6 +37,16 @@ void FalconServer::OnClientDisconnected(std::function<void(uint64_t)> handler)
 	{
 		handler(m_last_disconnected_client);
 	}
+}
+
+uint32_t FalconServer::GetNewStreamID(bool reliable, uint64_t client)
+{
+	uint32_t id = m_lastUsedStreamID[client]++;
+
+	if (reliable)
+		id = id & (1 << 31);
+
+	return id;
 }
 
 void FalconServer::ThreadListen(FalconServer& server)
@@ -120,10 +131,31 @@ void FalconServer::ThreadListen(FalconServer& server)
 			}
 				break;
 			case CREATE_STREAM:
-				//server.m_streams[client_id].push_back(CreateStream())
+			{
+				uint32_t stream_id;
+				memcpy(&stream_id, &buffer[7], sizeof(stream_id));
+
+				server.m_streams[client_id].push_back(server.CreateStream(client_id, (stream_id & 1 << 31)));
+			}
 				break;
 			case CLOSE_STREAM:
-				//server.m_streams[client_id][stream_id].CloseStream()
+			{
+				uint32_t stream_id;
+				memcpy(&stream_id, &buffer[7], sizeof(stream_id));
+
+				for (size_t i = 0; i < server.m_streams[client_id].size(); i++)
+				{
+					if (server.m_streams[client_id][i]->GetId() == stream_id)
+					{
+						server.m_streams[client_id].erase(server.m_streams[client_id].begin() + i);
+						break;
+					}
+				}
+				if (server.m_streams[client_id].size() == 0)
+				{
+					server.m_streams.erase(client_id);
+				}
+			}
 				break;
 			case DATA:
 				//server.m_streams[client_id][stream_id].OnDataReceived(buffer);
@@ -156,18 +188,39 @@ void FalconServer::ThreadListen(FalconServer& server)
 }
 
 std::unique_ptr<Stream> FalconServer::CreateStream(uint64_t client, bool reliable) {
+	uint32_t stream_id = GetNewStreamID(reliable, client);
 	std::unique_ptr<Stream> stream = std::make_unique<Stream>(
-		GetNewStreamID(reliable),
+		stream_id,
 		client,
 		this->m_clients.at(client),
 		this
 	);
 
-	// Envoyer trame
+	uint16_t msg_size = 11;
+	std::string message;
+	message.resize(msg_size);
+
+	message[0] = CREATE_STREAM;
+	memcpy(&message[1], &msg_size, sizeof(msg_size));
+	memcpy(&message[3], &client, sizeof(client));
+	memcpy(&message[7], &stream_id, sizeof(stream_id));
+
+	SendTo(m_clients.at(client).ip, m_clients.at(client).port, message);
 
 	return stream;
 }
 
 void FalconServer::CloseStream(const Stream& stream) {
+	uint64_t client_id = dynamic_cast<FalconClient*>(stream.getSocket())->GetId();
+	uint32_t stream_id = stream.GetId();
+	uint16_t msg_size = 11;
+	std::string message;
+	message.resize(msg_size);
 
+	message[0] = CREATE_STREAM;
+	memcpy(&message[1], &msg_size, sizeof(msg_size));
+	memcpy(&message[3], &client_id, sizeof(client_id));
+	memcpy(&message[7], &stream_id, sizeof(stream_id));
+
+	SendTo(m_clients.at(client_id).ip, m_clients.at(client_id).port, message);
 }

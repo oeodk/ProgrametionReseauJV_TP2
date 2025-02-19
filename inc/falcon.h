@@ -49,8 +49,6 @@ protected:
 
     int m_timeout_ms = 100;
 
-    uint32_t lastUsedStreamID = 0;
-    uint32_t GetNewStreamID(bool reliable);
 private:
     virtual void Listen(uint16_t port) {}
     virtual void OnClientConnected(std::function<void(uint64_t)> handler) {}
