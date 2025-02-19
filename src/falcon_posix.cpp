@@ -101,11 +101,9 @@ void Falcon::CreateClient(const std::string& serverIp)
     m_socket = socket(local_endpoint.sa_family,
         SOCK_DGRAM,
         IPPROTO_UDP);
-	int flags = fcntl(sockfd, F_GETFL, 0);
+	int flags = fcntl(m_socket, F_GETFL, 0);
     if (flags == -1) {
-        perror("fcntl");
-        close(sockfd);
-        exit(EXIT_FAILURE);
+        close(m_socket);
     }
     if (int error = bind(m_socket, &local_endpoint, sizeof(local_endpoint)); error != 0)
     {
