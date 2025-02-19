@@ -174,8 +174,9 @@ TEST_CASE("Stream Acknowledge registers", "[falcon client]")
     std::this_thread::sleep_for(500ms);
 
     auto stream = client.CreateStream(true);
-    stream->SendData("Helo");
-
+    std::this_thread::sleep_for(200ms);
+    client.SendData("Helo", stream->GetStreamID());
+    std::this_thread::sleep_for(50ms);
     REQUIRE(client.GetStreamsAck().size() == 1);
 
     std::this_thread::sleep_for(800ms);
@@ -194,7 +195,8 @@ TEST_CASE("Stream Acknowledge registers", "[falcon server]")
     std::this_thread::sleep_for(500ms);
 
     auto stream = server.CreateStream(0, true);
-    stream->SendData("Helo");
+    std::this_thread::sleep_for(200ms);
+    server.SendData("Helo", client.GetId(), stream->GetStreamID());
 
     REQUIRE(server.GetStreamsAck().size() == 1);
 
