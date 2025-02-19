@@ -145,7 +145,7 @@ void FalconServer::ThreadListen(FalconServer& server)
 			case CLOSE_STREAM:
 			{
 				uint32_t stream_id;
-				memcpy(&stream_id, &buffer[7], sizeof(stream_id));
+				memcpy(&stream_id, &buffer[11], sizeof(stream_id));
 
 				server.m_streams.at(client_id).erase(stream_id);
 				if (server.m_streams.at(client_id).size() == 0)
@@ -157,14 +157,14 @@ void FalconServer::ThreadListen(FalconServer& server)
 			case DATA:
 			{
 				uint32_t stream_id;
-				memcpy(&stream_id, &buffer[7], sizeof(stream_id));
+				memcpy(&stream_id, &buffer[11], sizeof(stream_id));
 				server.m_streams.at(client_id).at(stream_id)->OnDataReceived(buffer);
 			}
 			case DATA_ACK:
 				if (server.m_streams_ack.contains(client_id))
 				{
 					uint32_t stream_id;
-					memcpy(&stream_id, &buffer[7], sizeof(stream_id));
+					memcpy(&stream_id, &buffer[11], sizeof(stream_id));
 					if (server.m_streams_ack.at(client_id).contains(stream_id))
 					{
 						server.m_streams_ack.at(client_id).erase(stream_id);
@@ -256,7 +256,7 @@ void FalconServer::CloseStream(const Stream& stream) {
 	message[0] = CLOSE_STREAM;
 	memcpy(&message[1], &msg_size, sizeof(msg_size));
 	memcpy(&message[3], &client_id, sizeof(client_id));
-	memcpy(&message[7], &stream_id, sizeof(stream_id));
+	memcpy(&message[11], &stream_id, sizeof(stream_id));
 
 	SendTo(m_clients.at(client_id).ip, m_clients.at(client_id).port, message);
 

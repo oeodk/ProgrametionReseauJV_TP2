@@ -124,7 +124,7 @@ void FalconClient::ThreadListen(FalconClient& client)
 			case CREATE_STREAM:
 			{
 				uint32_t stream_id;
-				memcpy(&stream_id, &buffer[7], sizeof(stream_id));
+				memcpy(&stream_id, &buffer[11], sizeof(stream_id));
 
 				client.m_streams.insert({ stream_id,  client.CreateStream(stream_id & 1 << 31) });
 			}
@@ -132,7 +132,7 @@ void FalconClient::ThreadListen(FalconClient& client)
 			case CLOSE_STREAM:
 			{
 				uint32_t stream_id;
-				memcpy(&stream_id, &buffer[7], sizeof(stream_id));
+				memcpy(&stream_id, &buffer[11], sizeof(stream_id));
 
 				client.m_streams.erase(stream_id);
 			}
@@ -140,14 +140,14 @@ void FalconClient::ThreadListen(FalconClient& client)
 			case DATA:
 			{
 				uint32_t stream_id;
-				memcpy(&stream_id, &buffer[7], sizeof(stream_id));
+				memcpy(&stream_id, &buffer[11], sizeof(stream_id));
 				client.m_streams.at(stream_id)->OnDataReceived(buffer);
 			}
 				break;
 			case DATA_ACK:
 				{
 					uint32_t stream_id;
-					memcpy(&stream_id, &buffer[7], sizeof(stream_id));
+					memcpy(&stream_id, &buffer[11], sizeof(stream_id));
 					if (client.m_streams_ack.contains(stream_id))
 					{
 						client.m_streams_ack.erase(stream_id);
