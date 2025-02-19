@@ -1,6 +1,7 @@
 #pragma once
 
 #include "falcon.h"
+#include "Stream.h"
 #include <chrono>
 class FalconClient : 
 	public Falcon
@@ -26,6 +27,7 @@ private :
 
     IpPortPair server;
     uint64_t m_id;
+    std::vector<Stream> m_streams;
 
     bool m_connected = false;
 };
