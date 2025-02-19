@@ -5,7 +5,6 @@
 #include "spdlog/spdlog.h"
 using namespace std::chrono_literals;
 
-inline static uint64_t usable_id = 0;
 constexpr std::chrono::microseconds TIMEOUT = 1000ms;
 constexpr std::chrono::microseconds ACK_CHECK = 500ms;
 
@@ -48,7 +47,7 @@ uint32_t FalconServer::GetNewStreamID(bool reliable, uint64_t client)
 	uint32_t id = m_lastUsedStreamID[client]++;
 
 	if (reliable)
-		id = id & (1 << 31);
+		id = id | (1 << 31);
 
 	return id;
 }
@@ -88,7 +87,7 @@ void FalconServer::ThreadListen(FalconServer& server)
 					port = atoi(port_str.c_str());
 				}				
 
-				server.m_new_client = usable_id++;
+				server.m_new_client = server.usable_id++;
 
 				spdlog::debug("New client " + std::to_string(server.m_new_client));
 
@@ -221,26 +220,30 @@ void FalconServer::SendData(std::span<const char> data, uint64_t client_id, uint
 }
 
 std::unique_ptr<Stream> FalconServer::CreateStream(uint64_t client, bool reliable) {
-	uint32_t stream_id = GetNewStreamID(reliable, client);
-	std::unique_ptr<Stream> stream = std::make_unique<Stream>(
-		stream_id,
-		client,
-		m_clients.at(client),
-		this
-	);
+	if(m_clients.contains(client))
+	{
+		uint32_t stream_id = GetNewStreamID(reliable, client);
+		std::unique_ptr<Stream> stream = std::make_unique<Stream>(
+			stream_id,
+			client,
+			m_clients.at(client),
+			this
+		);
 
-	uint16_t msg_size = 11;
-	std::string message;
-	message.resize(msg_size);
+		uint16_t msg_size = 11;
+		std::string message;
+		message.resize(msg_size);
 
-	message[0] = CREATE_STREAM;
-	memcpy(&message[1], &msg_size, sizeof(msg_size));
-	memcpy(&message[3], &client, sizeof(client));
-	memcpy(&message[7], &stream_id, sizeof(stream_id));
+		message[0] = CREATE_STREAM;
+		memcpy(&message[1], &msg_size, sizeof(msg_size));
+		memcpy(&message[3], &client, sizeof(client));
+		memcpy(&message[7], &stream_id, sizeof(stream_id));
 
-	SendTo(m_clients.at(client).ip, m_clients.at(client).port, message);
+		SendTo(m_clients.at(client).ip, m_clients.at(client).port, message);
 
-	return stream;
+		return stream;
+	}
+	return nullptr;
 }
 
 void FalconServer::CloseStream(const Stream& stream) {

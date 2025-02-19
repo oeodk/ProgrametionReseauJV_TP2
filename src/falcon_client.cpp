@@ -219,7 +219,7 @@ uint32_t FalconClient::GetNewStreamID(bool reliable)
 	m_lastUsedStreamID++;
 
 	if (reliable)
-		id = id & (1 << 31);
+		id = id | (1 << 31);
 
 	return id;
 }

@@ -147,6 +147,13 @@ TEST_CASE("Can create a stream", "[falcon client]")
 TEST_CASE("Can create a stream", "[falcon server]")
 {
     FalconServer server;
+
+    server.Listen(5555);
+
+    FalconClient client;
+    client.ConnectTo("127.0.0.1", 5555);
+    std::this_thread::sleep_for(500ms);
+
     auto streamReliable = server.CreateStream(0, true);
     auto streamUnreliable = server.CreateStream(0, false);
 

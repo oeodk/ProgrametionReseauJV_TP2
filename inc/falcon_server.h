@@ -37,13 +37,7 @@ public :
 
 private:
     static void ThreadListen(FalconServer& server);
-
-    struct StreamAckReceived
-    {
-        StreamAckReceived(uint32_t id) : stream_id(id) {}
-        uint32_t stream_id;
-        bool ack_received = false;
-    };
+    uint64_t usable_id = 0;
 
     std::unordered_map<uint64_t, IpPortPair> m_clients;
     std::unordered_map<uint64_t, std::map<uint32_t, std::unique_ptr<Stream>>> m_streams;
