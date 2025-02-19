@@ -49,6 +49,14 @@ void FalconClient::OnDisconnect(std::function<void()> handler)
 	}
 }
 
+void FalconClient::SendData(std::span<const char> data, uint32_t stream_id)
+{ 
+	if(m_streams.contains(stream_id))
+	{
+		m_streams.at(stream_id)->SendData(data);
+	}
+}
+
 void FalconClient::ThreadListen(FalconClient& client)
 {
 	std::chrono::steady_clock::time_point start = std::chrono::steady_clock::now();
@@ -105,13 +113,26 @@ void FalconClient::ThreadListen(FalconClient& client)
 			}
 			break;
 			case CREATE_STREAM:
-				//client.m_streams.push_back(CreateStream())
-				break;
+			{
+				uint32_t stream_id;
+				memcpy(&stream_id, &buffer[7], sizeof(stream_id));
+
+				client.m_streams.insert({ stream_id,  client.CreateStream(stream_id & 1 << 31) });
+			}
+			break;
 			case CLOSE_STREAM:
-				//server.m_streams[stream_id].CloseStream()
-				break;
+			{
+				uint32_t stream_id;
+				memcpy(&stream_id, &buffer[7], sizeof(stream_id));
+
+				client.m_streams.erase(stream_id);
+			}
 			case DATA:
-				//server.m_streams[stream_id].OnDataReceived(buffer);
+			{
+				uint32_t stream_id;
+				memcpy(&stream_id, &buffer[7], sizeof(stream_id));
+				client.m_streams.at(stream_id)->OnDataReceived(buffer);
+			}
 				break;
 			case DATA_ACK:
 				break;
