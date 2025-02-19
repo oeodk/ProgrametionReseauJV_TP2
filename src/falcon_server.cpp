@@ -71,7 +71,6 @@ void FalconServer::ThreadListen(FalconServer& server)
 					std::string port_str = other_ip.substr(++pos);
 					port = atoi(port_str.c_str());
 				}				
-
 				server.m_new_client = usable_id++;
 
 				spdlog::debug("New client " + std::to_string(server.m_new_client));
