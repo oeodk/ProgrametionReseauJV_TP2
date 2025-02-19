@@ -176,7 +176,6 @@ TEST_CASE("Stream Acknowledge registers", "[falcon client]")
     auto stream = client.CreateStream(true);
     std::this_thread::sleep_for(200ms);
     client.SendData("Helo", stream->GetStreamID());
-    std::this_thread::sleep_for(50ms);
     REQUIRE(client.GetStreamsAck().size() == 1);
 
     std::this_thread::sleep_for(800ms);

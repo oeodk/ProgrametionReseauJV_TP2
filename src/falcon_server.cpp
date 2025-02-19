@@ -178,6 +178,10 @@ void FalconServer::ThreadListen(FalconServer& server)
 					{
 						server.m_streams_ack.at(client_id).erase(stream_id);
 					}
+					if (server.m_streams_ack.at(client_id).size() == 0)
+					{
+						server.m_streams_ack.erase(client_id);
+					}
 				}
 				break;
 			}

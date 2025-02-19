@@ -99,7 +99,7 @@ void Stream::OnDataReceived(std::span<const char> data) {
 	
 	std::string message;
 
-	const uint16_t message_size = data_size + 7;
+	const uint16_t message_size = data_size + 15;
 	message.resize(message_size);
 	int current_pos = 0;
 
@@ -111,6 +111,9 @@ void Stream::OnDataReceived(std::span<const char> data) {
 
 	memcpy(&message[current_pos], &client_uuid, sizeof(client_uuid));
 	current_pos += sizeof(client_uuid);
+
+	memcpy(&message[current_pos], &stream_id, sizeof(stream_id));
+	current_pos += sizeof(stream_id);
 
 	memcpy(&message[current_pos], &data, sizeof(data));
 
