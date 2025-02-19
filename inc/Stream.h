@@ -31,13 +31,16 @@ public:
     void SetFlag(int flag_id, bool value);
     bool GetFlag(int flag_id);
 
+    uint32_t GetStreamID() const { return stream_id; }
+    uint64_t GetClientUUID() const { return client_uuid; }
+    IpPortPair GetTargetIpPortPair() const { return target; }
+    Falcon* GetSocket() const { return socket; }
+
     void SendData(std::span<const char> data);
     void OnDataReceived(std::span<const char> data);
 
     uint32_t GetId() const { return stream_id; }
     Falcon* getSocket() const { return socket; }
-
-    bool IsReliable() const { return stream_id & 1 << 31; }
 protected:
     void SendDataPart(uint8_t part_id, uint8_t part_total, std::span<const char> data);
 };

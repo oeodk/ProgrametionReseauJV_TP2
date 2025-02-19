@@ -198,7 +198,7 @@ std::unique_ptr<Stream> FalconServer::CreateStream(uint64_t client, bool reliabl
 	std::unique_ptr<Stream> stream = std::make_unique<Stream>(
 		stream_id,
 		client,
-		this->m_clients.at(client),
+		m_clients.at(client),
 		this
 	);
 
@@ -217,8 +217,8 @@ std::unique_ptr<Stream> FalconServer::CreateStream(uint64_t client, bool reliabl
 }
 
 void FalconServer::CloseStream(const Stream& stream) {
-	uint64_t client_id = dynamic_cast<FalconClient*>(stream.getSocket())->GetId();
-	uint32_t stream_id = stream.GetId();
+	uint64_t client_id = dynamic_cast<FalconClient*>(stream.GetSocket())->GetId();
+	uint32_t stream_id = stream.GetStreamID();
 	uint16_t msg_size = 11;
 	std::string message;
 	message.resize(msg_size);
