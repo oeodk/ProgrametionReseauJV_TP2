@@ -38,6 +38,8 @@ public :
     const std::map<uint32_t, std::span<const char>>& GetStreamsAck() const { return m_streams_ack; }
 
 private :    
+    std::unique_ptr<Stream> MakeStream(uint32_t stream_id, bool reliable);
+
     static void ThreadListen(FalconClient& client);
 
     IpPortPair server;

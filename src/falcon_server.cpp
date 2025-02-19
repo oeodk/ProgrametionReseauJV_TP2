@@ -139,7 +139,7 @@ void FalconServer::ThreadListen(FalconServer& server)
 				uint32_t stream_id;
 				memcpy(&stream_id, &buffer[11], sizeof(stream_id));
 
-				server.m_streams[client_id].insert({ stream_id,  server.CreateStream(client_id, (stream_id & 1 << 31)) });
+				server.m_streams[client_id].insert({ stream_id,  server.MakeStream(stream_id, client_id, (stream_id & 1 << 31)) });
 			}
 				break;
 			case CLOSE_STREAM:
@@ -219,18 +219,24 @@ void FalconServer::SendData(std::span<const char> data, uint64_t client_id, uint
 	}
 }
 
+std::unique_ptr<Stream> FalconServer::MakeStream(uint32_t stream_id, uint64_t client, bool reliable)
+{
+	return std::make_unique<Stream>(
+		stream_id,
+		client,
+		m_clients.at(client),
+		this
+	);
+}
+
 std::unique_ptr<Stream> FalconServer::CreateStream(uint64_t client, bool reliable) {
 	if(m_clients.contains(client))
 	{
 		uint32_t stream_id = GetNewStreamID(reliable, client);
-		std::unique_ptr<Stream> stream = std::make_unique<Stream>(
-			stream_id,
-			client,
-			m_clients.at(client),
-			this
-		);
+		
+		std::unique_ptr<Stream> stream = MakeStream(stream_id, client, reliable);
 
-		uint16_t msg_size = 11;
+		uint16_t msg_size = 15;
 		std::string message;
 		message.resize(msg_size);
 
@@ -247,7 +253,7 @@ std::unique_ptr<Stream> FalconServer::CreateStream(uint64_t client, bool reliabl
 }
 
 void FalconServer::CloseStream(const Stream& stream) {
-	uint64_t client_id = dynamic_cast<FalconClient*>(stream.GetSocket())->GetId();
+	uint64_t client_id = stream.GetClientUUID();;
 	uint32_t stream_id = stream.GetStreamID();
 	uint16_t msg_size = 11;
 	std::string message;

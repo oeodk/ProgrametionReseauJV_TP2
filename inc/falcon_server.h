@@ -39,6 +39,9 @@ public :
     const std::unordered_map<uint64_t, std::map<uint32_t, std::span<const char>>>& GetStreamsAck() const { return m_streams_ack; }
 
 private:
+    std::unique_ptr<Stream> MakeStream(uint32_t stream_id, uint64_t client, bool reliable);
+
+
     static void ThreadListen(FalconServer& server);
     uint64_t usable_id = 0;
 
