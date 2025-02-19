@@ -29,11 +29,12 @@ TEST_CASE( "Can start", "[falcon server]" ) {
 TEST_CASE( "Can Connect", "[falcon client]" ) {
     FalconServer server;
     server.Listen(5555);
+    REQUIRE(server.IsListening());
 
     FalconClient client;
     client.ConnectTo("127.0.0.1", 5555);
 
-    std::this_thread::sleep_for(1500ms);
+    std::this_thread::sleep_for(1100ms);
     REQUIRE(client.IsConnected());
 }
 
@@ -42,6 +43,7 @@ TEST_CASE("Disconnection from server death", "[falcon client]") {
     {
         FalconServer server;
         server.Listen(5555);
+        REQUIRE(server.IsListening());
 
         client.ConnectTo("127.0.0.1", 5555);
         std::this_thread::sleep_for(100ms);
