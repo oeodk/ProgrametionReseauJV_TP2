@@ -24,6 +24,14 @@ void Stream::SetFlag(int flag_id, bool value) {
 		flags = flags & ~(1 << flag_id);
 }
 
+bool Stream::GetFlag(int flag_id)
+{
+	if (flag_id < 0 || flag_id >= 16) return;
+	uint16_t mask;
+	mask = 1 << flag_id;
+	return flags & mask;
+}
+
 std::unique_ptr<Stream> Stream::CreateStream(uint64_t client, bool reliable) {
 	return std::unique_ptr<Stream>();
 }
@@ -69,9 +77,12 @@ void Stream::SendDataPart(uint8_t part_id, uint8_t part_total, std::span<const c
 	current_pos += sizeof(stream_id);
 
 	memcpy(&message[current_pos], &data_size, sizeof(data_size));
+	m_msg_size_index = current_pos;
+
 	current_pos += sizeof(data_size);
 
 	memcpy(&message[current_pos], &flags, sizeof(flags));
+	m_flag_index = current_pos;
 	current_pos += sizeof(flags);
 
 	memcpy(&message[current_pos], &part_id, sizeof(part_id));
@@ -92,4 +103,32 @@ void Stream::SendDataPart(uint8_t part_id, uint8_t part_total, std::span<const c
 
 void Stream::OnDataReceived(std::span<const char> data) {
 	
+	uint16_t data_size;
+	memcpy(&data_size, &data[m_msg_size_index], sizeof(uint16_t));
+	memcpy(&flags, &data[m_flag_index], sizeof(uint16_t));
+	
+	
+	if (stream_id & (1 << 31))
+	{
+		std::string message;
+
+		const uint16_t message_size = data_size + 7;
+		message.resize(message_size);
+		int current_pos = 0;
+
+		message[current_pos] = DATA_ACK;
+		current_pos += sizeof(DATA);
+
+		memcpy(&message[current_pos], &message_size, sizeof(message_size));
+		current_pos += sizeof(message_size);
+
+		memcpy(&message[current_pos], &client_uuid, sizeof(client_uuid));
+		current_pos += sizeof(client_uuid);
+
+		memcpy(&message[current_pos], &data, sizeof(data));
+
+		socket->SendTo(target.ip, target.port, message);
+	}
+	memcpy(&data, &data, sizeof(data_size));
+
 }

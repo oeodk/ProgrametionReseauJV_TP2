@@ -16,6 +16,9 @@ private:
     IpPortPair target;
     Falcon* socket;
 
+    int m_msg_size_index;
+    int m_flag_index;
+
 public:
     Stream() = default;
     ~Stream();
@@ -26,6 +29,7 @@ public:
 
     uint16_t GetNewMessageID();
     void SetFlag(int flag_id, bool value);
+    bool GetFlag(int flag_id);
 
     std::unique_ptr<Stream> CreateStream(uint64_t client, bool reliable);
     std::unique_ptr<Stream> CreateStream(bool reliable);
