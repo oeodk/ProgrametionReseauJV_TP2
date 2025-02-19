@@ -36,18 +36,6 @@ bool Stream::GetFlag(int flag_id)
 	return flags & mask;
 }
 
-std::unique_ptr<Stream> Stream::CreateStream(uint64_t client, bool reliable) {
-	return std::unique_ptr<Stream>();
-}
-
-std::unique_ptr<Stream> Stream::CreateStream(bool reliable) {
-	return std::unique_ptr<Stream>();
-}
-
-void Stream::CloseStream(const Stream& stream) {
-
-}
-
 void Stream::SendData(std::span<const char> data) {
 	int max_packet_size = 65536 - HEADER_SIZE;
 	const uint8_t part_total = data.size() / max_packet_size + 1;
