@@ -135,7 +135,7 @@ void FalconServer::ThreadListen(FalconServer& server)
 				uint32_t stream_id;
 				memcpy(&stream_id, &buffer[7], sizeof(stream_id));
 
-				server.m_streams[client_id].push_back(server.CreateStream(client_id, (stream_id & 1 << 31)));
+				server.m_streams[client_id].insert({ stream_id,  server.CreateStream(client_id, (stream_id & 1 << 31)) });
 			}
 				break;
 			case CLOSE_STREAM:
@@ -143,23 +143,19 @@ void FalconServer::ThreadListen(FalconServer& server)
 				uint32_t stream_id;
 				memcpy(&stream_id, &buffer[7], sizeof(stream_id));
 
-				for (size_t i = 0; i < server.m_streams[client_id].size(); i++)
-				{
-					if (server.m_streams[client_id][i]->GetId() == stream_id)
-					{
-						server.m_streams[client_id].erase(server.m_streams[client_id].begin() + i);
-						break;
-					}
-				}
-				if (server.m_streams[client_id].size() == 0)
+				server.m_streams.at(client_id).erase(stream_id);
+				if (server.m_streams.at(client_id).size() == 0)
 				{
 					server.m_streams.erase(client_id);
 				}
 			}
 				break;
 			case DATA:
-				//server.m_streams[client_id][stream_id].OnDataReceived(buffer);
-				break;
+			{
+				uint32_t stream_id;
+				memcpy(&stream_id, &buffer[7], sizeof(stream_id));
+				server.m_streams.at(client_id).at(stream_id)->OnDataReceived(buffer);
+			}
 			case DATA_ACK:
 				break;
 			}
@@ -184,6 +180,14 @@ void FalconServer::ThreadListen(FalconServer& server)
 		{
 			client_timeout.erase(id);
 		}
+	}
+}
+
+void FalconServer::SendData(std::span<const char> data, uint64_t client_id, uint32_t stream_id)
+{
+	if (m_streams.at(client_id).at(stream_id))
+	{
+		m_streams.at(client_id).at(stream_id)->SendData(data);
 	}
 }
 
@@ -217,10 +221,16 @@ void FalconServer::CloseStream(const Stream& stream) {
 	std::string message;
 	message.resize(msg_size);
 
-	message[0] = CREATE_STREAM;
+	message[0] = CLOSE_STREAM;
 	memcpy(&message[1], &msg_size, sizeof(msg_size));
 	memcpy(&message[3], &client_id, sizeof(client_id));
 	memcpy(&message[7], &stream_id, sizeof(stream_id));
 
 	SendTo(m_clients.at(client_id).ip, m_clients.at(client_id).port, message);
+
+	m_streams.at(client_id).erase(stream_id);
+	if (m_streams.at(client_id).size() == 0)
+	{
+		m_streams.erase(client_id);
+	}
 }

@@ -3,6 +3,8 @@
 #include "falcon.h"
 #include "Stream.h"
 #include <chrono>
+#include <map>
+
 class FalconClient : 
 	public Falcon
 {
@@ -29,12 +31,14 @@ public :
     uint32_t GetNewStreamID(bool reliable);
 
     uint64_t GetId() const { return m_id; }
+
+    void SendData(std::span<const char> data);
 private :    
     static void ThreadListen(FalconClient& client);
 
     IpPortPair server;
     uint64_t m_id;
-    std::vector<Stream> m_streams;
+    std::map<uint32_t, std::unique_ptr<Stream>> m_streams;
 
     bool m_connected = false;
 };
