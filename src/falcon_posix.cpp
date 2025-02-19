@@ -81,7 +81,7 @@ void Falcon::CreateServer(uint16_t port)
     m_socket = socket(local_endpoint.sa_family,
         SOCK_DGRAM,
         IPPROTO_UDP);
-	int flags = fcntl(sockfd, F_GETFL, 0);
+	int flags = fcntl(m_socket, F_GETFL, 0);
     if (flags == -1) {
         perror("fcntl");
         close(sockfd);
