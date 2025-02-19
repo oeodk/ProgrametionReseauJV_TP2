@@ -3,6 +3,7 @@
 #include "falcon.h"
 #include "Stream.h"
 #include <thread>
+#include "Stream.h"
 
 class FalconServer :
 	public Falcon
@@ -31,7 +32,7 @@ private:
     static void ThreadListen(FalconServer& server);
 
     std::unordered_map<uint64_t, IpPortPair> m_clients;
-
+    std::unordered_map<uint64_t, std::vector<std::unique_ptr<Stream>>> m_streams;
     uint64_t m_new_client{};
     uint64_t m_last_disconnected_client{};
 

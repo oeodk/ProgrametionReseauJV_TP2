@@ -100,13 +100,20 @@ void FalconClient::ThreadListen(FalconClient& client)
 				spdlog::debug("Disconnect received");
 				break;
 			case PONG:
-			{ 
+			{
 				spdlog::debug("Pong received");
 			}
+			break;
+			case CREATE_STREAM:
+				//client.m_streams.push_back(CreateStream())
 				break;
-			default:
-				spdlog::debug("Stream received");
-				//stream
+			case CLOSE_STREAM:
+				//server.m_streams[stream_id].CloseStream()
+				break;
+			case DATA:
+				//server.m_streams[stream_id].OnDataReceived(buffer);
+				break;
+			case DATA_ACK:
 				break;
 			}
 		}

@@ -119,11 +119,16 @@ void FalconServer::ThreadListen(FalconServer& server)
 				server.SendTo(server.m_clients.at(client_id).ip, server.m_clients.at(client_id).port, pong_msg);
 			}
 				break;
-			default:
-			{
-				spdlog::debug("Stream received" + std::to_string(client_id));
-			}
-				//stream
+			case CREATE_STREAM:
+				//server.m_streams[client_id].push_back(CreateStream())
+				break;
+			case CLOSE_STREAM:
+				//server.m_streams[client_id][stream_id].CloseStream()
+				break;
+			case DATA:
+				//server.m_streams[client_id][stream_id].OnDataReceived(buffer);
+				break;
+			case DATA_ACK:
 				break;
 			}
 			

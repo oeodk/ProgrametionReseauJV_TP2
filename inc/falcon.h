@@ -29,9 +29,6 @@ public:
     Falcon& operator=(const Falcon&) = default;
     Falcon(Falcon&&) = default;
     Falcon& operator=(Falcon&&) = default;
-
-    int SendTo(const std::string& to, uint16_t port, std::span<const char> message);
-    int ReceiveFrom(std::string& from, std::span<char, 65535> message);
     
     const uint8_t m_version = 1;
 

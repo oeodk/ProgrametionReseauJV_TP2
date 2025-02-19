@@ -29,6 +29,7 @@ private :
 
     IpPortPair server;
     uint64_t m_id;
+    std::vector<Stream> m_streams;
 
     bool m_connected = false;
 };

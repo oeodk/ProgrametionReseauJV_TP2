@@ -31,7 +31,7 @@ void Stream::SetFlag(int flag_id, bool value) {
 
 void Stream::SendData(std::span<const char> data) {
 	int max_packet_size = 65536 - HEADER_SIZE;
-	const uint8_t part_total = ceil(data.size() / max_packet_size);
+	const uint8_t part_total = data.size() / max_packet_size + 1;
 
 	for (uint8_t part_id = 0; part_id < part_total; part_id++) {
 		SendDataPart(part_id, part_total, data.subspan(part_id * max_packet_size, max_packet_size));

@@ -77,7 +77,7 @@ void Falcon::CreateServer(uint16_t port)
     {
         close(m_socket);
     }
-    sockaddr local_endpoint = StringToIp("::", port);
+    sockaddr local_endpoint = StringToIp("0.0.0.0", port);
     m_socket = socket(local_endpoint.sa_family,
         SOCK_DGRAM,
         IPPROTO_UDP);
@@ -105,17 +105,6 @@ void Falcon::CreateClient(const std::string& serverIp)
 
 int Falcon::SendToInternal(const std::string &to, uint16_t port, std::span<const char> message)
 {
-	struct pollfd fds;
-    fds.fd = m_socket;
-    fds.events = POLLIN;  // Check for data available to read
-
-    int result = poll(&fds, 1, m_timeout_ms);  
-	if (result < 1)
-    {
-        return 0;  // Timeout
-    }
-	
-	
     const sockaddr destination = StringToIp(to, port);
     int error = sendto(m_socket,
         message.data(),
