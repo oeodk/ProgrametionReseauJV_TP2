@@ -204,3 +204,28 @@ TEST_CASE("Stream Acknowledge registers", "[falcon server]")
 
     REQUIRE(server.GetStreamsAck().size() == 0);
 }
+
+TEST_CASE("Can close stream", "[falcon]")
+{
+    FalconServer server;
+
+    server.Listen(5555);
+
+    FalconClient client;
+    client.ConnectTo("127.0.0.1", 5555);
+    std::this_thread::sleep_for(500ms);
+    auto stream = client.CreateStream(true);
+    auto streamId = stream->GetStreamID();
+    std::this_thread::sleep_for(500ms);
+
+    auto& serverStreams = server.GetStreams();
+    REQUIRE(serverStreams.contains(client.GetId()));
+
+    REQUIRE(serverStreams.at(client.GetId()).contains(streamId));
+    auto serverStream = serverStreams.at(client.GetId()).at(streamId);
+
+    server.CloseStream(*serverStream);
+    std::this_thread::sleep_for(500ms);
+
+    REQUIRE(client.GetStreams().contains(client.GetId()) == false);
+}

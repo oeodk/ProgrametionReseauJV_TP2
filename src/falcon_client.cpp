@@ -124,15 +124,15 @@ void FalconClient::ThreadListen(FalconClient& client)
 			case CREATE_STREAM:
 			{
 				uint32_t stream_id;
-				memcpy(&stream_id, &buffer[7], sizeof(stream_id));
+				memcpy(&stream_id, &buffer[11], sizeof(stream_id));
 
-				client.m_streams.insert({ stream_id,  client.CreateStream(stream_id & 1 << 31) });
+				client.MakeStream(stream_id, stream_id & 1 << 31);
 			}
 			break;
 			case CLOSE_STREAM:
 			{
 				uint32_t stream_id;
-				memcpy(&stream_id, &buffer[7], sizeof(stream_id));
+				memcpy(&stream_id, &buffer[11], sizeof(stream_id));
 
 				client.m_streams.erase(stream_id);
 			}
@@ -140,14 +140,14 @@ void FalconClient::ThreadListen(FalconClient& client)
 			case DATA:
 			{
 				uint32_t stream_id;
-				memcpy(&stream_id, &buffer[7], sizeof(stream_id));
+				memcpy(&stream_id, &buffer[11], sizeof(stream_id));
 				client.m_streams.at(stream_id)->OnDataReceived(buffer);
 			}
 				break;
 			case DATA_ACK:
 				{
 					uint32_t stream_id;
-					memcpy(&stream_id, &buffer[7], sizeof(stream_id));
+					memcpy(&stream_id, &buffer[11], sizeof(stream_id));
 					if (client.m_streams_ack.contains(stream_id))
 					{
 						client.m_streams_ack.erase(stream_id);
@@ -189,10 +189,8 @@ void FalconClient::ThreadListen(FalconClient& client)
 		}
 	}
 }
-
-std::unique_ptr<Stream> FalconClient::CreateStream(bool reliable) {
-	uint32_t stream_id = GetNewStreamID(reliable);
-
+std::unique_ptr<Stream> FalconClient::MakeStream(uint32_t stream_id, bool reliable)
+{
 	std::unique_ptr<Stream> stream = std::make_unique<Stream>(
 		stream_id,
 		m_id,
@@ -200,14 +198,23 @@ std::unique_ptr<Stream> FalconClient::CreateStream(bool reliable) {
 		this
 	);
 
-	uint16_t msg_size = 11;
+	m_streams.insert({ stream_id, stream.get()});
+	return stream;
+}
+
+std::unique_ptr<Stream> FalconClient::CreateStream(bool reliable) {
+	uint32_t stream_id = GetNewStreamID(reliable);
+
+	std::unique_ptr<Stream> stream = MakeStream(stream_id, reliable);
+
+	uint16_t msg_size = 15;
 	std::string message;
 	message.resize(msg_size);
 	
 	message[0] = CREATE_STREAM;
 	memcpy(&message[1], &msg_size, sizeof(msg_size));
 	memcpy(&message[3], &m_id, sizeof(m_id));
-	memcpy(&message[7], &stream_id, sizeof(stream_id));
+	memcpy(&message[11], &stream_id, sizeof(stream_id));
 
 	SendTo(server.ip, server.port, message);
 
