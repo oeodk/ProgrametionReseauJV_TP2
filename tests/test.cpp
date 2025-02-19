@@ -12,6 +12,18 @@
 
 using namespace std::chrono_literals;
 
+TEST_CASE("Can Send", "[falcon client]")
+{
+    FalconServer server;
+    server.Listen(5555);
+
+    FalconClient client;
+    client.ConnectTo("127.0.0.1", 5555);
+
+    int byte_sent = client.SendTo("127.0.0.1", 5555, "hello");
+    REQUIRE(byte_sent > 0);
+}
+
 TEST_CASE( "Connection failed", "[falcon client]" ) {
     FalconClient client;
     client.ConnectTo("127.0.0.1", 5555);
