@@ -12,7 +12,10 @@ constexpr std::chrono::microseconds ACK_CHECK = 500ms;
 FalconServer::~FalconServer()
 {
 	m_listen = false;
-	m_listener.join();
+	if(m_listener.joinable())
+	{
+		m_listener.join();
+	}
 }
 
 void FalconServer::Listen(uint16_t port)

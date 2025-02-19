@@ -11,7 +11,10 @@ constexpr std::chrono::microseconds ACK_CHECK = 500ms;
 FalconClient::~FalconClient()
 {
 	m_listen = false;
-	m_listener.join();
+	if(m_listener.joinable())
+	{
+		m_listener.join();
+	}
 }
 
 void FalconClient::ConnectTo(const std::string& ip, uint16_t port)
