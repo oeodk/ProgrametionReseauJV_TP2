@@ -4,6 +4,10 @@
 
 constexpr int HEADER_SIZE = 184;
 
+Stream::Stream(uint32_t _stream_id, uint64_t _client_uuid, IpPortPair _target, Falcon* _socket):
+	stream_id(_stream_id), client_uuid(_client_uuid), target(_target), socket(_socket)
+{}
+
 Stream::~Stream() {
 
 }

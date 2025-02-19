@@ -48,6 +48,9 @@ protected:
     SocketType m_socket{};
 
     int m_timeout_ms = 100;
+
+    uint32_t lastUsedStreamID = 0;
+    uint32_t GetNewStreamID(bool reliable);
 private:
     virtual void Listen(uint16_t port) {}
     virtual void OnClientConnected(std::function<void(uint64_t)> handler) {}
@@ -60,5 +63,4 @@ private:
     
     int SendToInternal(const std::string& to, uint16_t port, std::span<const char> message);
     int ReceiveFromInternal(std::string& from, std::span<char, 65535> message);
-
 };
