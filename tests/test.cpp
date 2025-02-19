@@ -183,3 +183,43 @@ TEST_CASE("Can close stream", "[falcon]")
     server.CloseStream(*serverStream->second);
     REQUIRE(client.GetStreams().find(streamId) == client.GetStreams().end());
 }
+
+TEST_CASE("Can create a stream", "[falcon client]")
+{
+    FalconServer server;
+
+    server.Listen(5555);
+
+    FalconClient client;
+    client.ConnectTo("127.0.0.1", 5555);
+    std::this_thread::sleep_for(500ms);
+
+    auto stream = client.CreateStream(true);
+    stream->SendData("Helo");
+
+    REQUIRE(client.GetStreamsAck().size() == 1);
+
+    std::this_thread::sleep_for(800ms);
+
+    REQUIRE(client.GetStreamsAck().size() == 0);
+}
+
+TEST_CASE("Can create a stream", "[falcon server]")
+{
+    FalconServer server;
+
+    server.Listen(5555);
+
+    FalconClient client;
+    client.ConnectTo("127.0.0.1", 5555);
+    std::this_thread::sleep_for(500ms);
+
+    auto stream = server.CreateStream(0, true);
+    stream->SendData("Helo");
+
+    REQUIRE(server.GetStreamsAck().size() == 1);
+
+    std::this_thread::sleep_for(800ms);
+
+    REQUIRE(server.GetStreamsAck().size() == 0);
+}
