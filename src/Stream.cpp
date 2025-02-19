@@ -41,7 +41,8 @@ void Stream::SendData(std::span<const char> data) {
 	const uint8_t part_total = data.size() / max_packet_size + 1;
 
 	for (uint8_t part_id = 0; part_id < part_total; part_id++) {
-		SendDataPart(part_id, part_total, data.subspan(part_id * max_packet_size, max_packet_size));
+		int packet_size = (part_id == part_total - 1) ? data.size() % max_packet_size : max_packet_size;
+		SendDataPart(part_id, part_total, data.subspan(part_id * max_packet_size, packet_size));
 	}
 }
 
