@@ -12,7 +12,7 @@
 
 using namespace std::chrono_literals;
 
-TEST_CASE("Can Send", "[falcon ]")
+TEST_CASE("Can Send", "[falcon]")
 {
     FalconServer server;
     server.Listen(5555);
@@ -132,4 +132,24 @@ TEST_CASE("Connection kept thanks to Ping / Pong", "[falcon server]")
     std::this_thread::sleep_for(5s);
 
     REQUIRE(server.GetActiveClientCount() == 1);
+}
+
+TEST_CASE("Can create a stream", "[falcon client]")
+{
+    FalconClient client;
+    auto streamReliable = client.CreateStream(true);
+    auto streamUnreliable = client.CreateStream(false);
+
+    REQUIRE(streamReliable->GetStreamID() >= (1 << 31));
+    REQUIRE(streamUnreliable->GetStreamID() < (1 << 31));
+}
+
+TEST_CASE("Can create a stream", "[falcon server]")
+{
+    FalconServer server;
+    auto streamReliable = server.CreateStream(0, true);
+    auto streamUnreliable = server.CreateStream(0, false);
+
+    REQUIRE(streamReliable->GetStreamID() >= (1 << 31));
+    REQUIRE(streamUnreliable->GetStreamID() < (1 << 31));
 }

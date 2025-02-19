@@ -31,6 +31,11 @@ public:
     void SetFlag(int flag_id, bool value);
     bool GetFlag(int flag_id);
 
+    uint32_t GetStreamID() { return stream_id; }
+    uint64_t GetClientUUID() { return client_uuid; }
+    IpPortPair GetTargetIpPortPair() { return target; }
+    Falcon* GetSocket() { return socket; }
+
     void SendData(std::span<const char> data);
     void OnDataReceived(std::span<const char> data);
 
