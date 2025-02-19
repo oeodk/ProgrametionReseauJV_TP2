@@ -81,6 +81,12 @@ void Falcon::CreateServer(uint16_t port)
     m_socket = socket(local_endpoint.sa_family,
         SOCK_DGRAM,
         IPPROTO_UDP);
+	int flags = fcntl(sockfd, F_GETFL, 0);
+    if (flags == -1) {
+        perror("fcntl");
+        close(sockfd);
+        exit(EXIT_FAILURE);
+    }
     if (int error = bind(m_socket, &local_endpoint, sizeof(local_endpoint)); error != 0)
     {
         close(m_socket);
@@ -97,6 +103,12 @@ void Falcon::CreateClient(const std::string& serverIp)
     m_socket = socket(local_endpoint.sa_family,
         SOCK_DGRAM,
         IPPROTO_UDP);
+	int flags = fcntl(sockfd, F_GETFL, 0);
+    if (flags == -1) {
+        perror("fcntl");
+        close(sockfd);
+        exit(EXIT_FAILURE);
+    }
     if (int error = bind(m_socket, &local_endpoint, sizeof(local_endpoint)); error != 0)
     {
         close(m_socket);
@@ -117,16 +129,16 @@ int Falcon::SendToInternal(const std::string &to, uint16_t port, std::span<const
 
 int Falcon::ReceiveFromInternal(std::string &from, std::span<char, 65535> message)
 {
-    //struct pollfd fds;
-    //fds.fd = m_socket;
-    //fds.events = POLLIN;  // Check for data available to read
-	//
-    //int result = poll(&fds, 1, m_timeout_ms);  
+   // struct pollfd fds;
+   // fds.fd = m_socket;
+   // fds.events = POLLIN;  // Check for data available to read
+   //
+   // int result = poll(&fds, 1, m_timeout_ms);  
 	//if (result == 0)
-    //{
-    //    return 0;  // Timeout
-    //}
-	//
+   // {
+   //     return 0;  // Timeout
+   // }
+	
     struct sockaddr_storage peer_addr;
     socklen_t peer_addr_len = sizeof(struct sockaddr_storage);
     const int read_bytes = recvfrom(m_socket,
