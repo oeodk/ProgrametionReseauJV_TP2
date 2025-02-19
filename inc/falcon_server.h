@@ -36,6 +36,7 @@ public :
     void SendData(std::span<const char> data, uint64_t client_id, uint32_t stream_id);
 
     const std::unordered_map<uint64_t, std::map<uint32_t, std::unique_ptr<Stream>>>& GetStreams() const { return m_streams; }
+    const std::unordered_map<uint64_t, std::map<uint32_t, std::span<const char>>>& GetStreamsAck() const { return m_streams_ack; }
 
 private:
     static void ThreadListen(FalconServer& server);

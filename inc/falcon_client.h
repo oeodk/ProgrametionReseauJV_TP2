@@ -35,6 +35,7 @@ public :
     void SendData(std::span<const char> data, uint32_t stream_id);
 
     const std::map<uint32_t, std::unique_ptr<Stream>>& GetStreams() const { return m_streams; }
+    const std::map<uint32_t, std::span<const char>>& GetStreamsAck() const { return m_streams_ack; }
 
 private :    
     static void ThreadListen(FalconClient& client);
