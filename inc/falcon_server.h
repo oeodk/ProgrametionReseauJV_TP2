@@ -5,6 +5,7 @@
 #include <thread>
 #include "Stream.h"
 #include <map>
+#include <set>
 
 class FalconServer :
 	public Falcon
@@ -46,7 +47,7 @@ private:
 
     std::unordered_map<uint64_t, IpPortPair> m_clients;
     std::unordered_map<uint64_t, std::map<uint32_t, std::unique_ptr<Stream>>> m_streams;
-    std::unordered_map<uint64_t, std::map<uint32_t, bool>> m_stream_ack;
+    std::unordered_map<uint64_t, std::map<uint32_t, std::span<const char>>> m_streams_ack;
     uint64_t m_new_client{};
     uint64_t m_last_disconnected_client{};
 

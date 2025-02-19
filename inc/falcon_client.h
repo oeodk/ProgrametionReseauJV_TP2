@@ -39,6 +39,6 @@ private :
     IpPortPair server;
     uint64_t m_id;
     std::map<uint32_t, std::unique_ptr<Stream>> m_streams;
-
+    std::map<uint32_t, std::span<const char>> m_streams_ack;
     bool m_connected = false;
 };

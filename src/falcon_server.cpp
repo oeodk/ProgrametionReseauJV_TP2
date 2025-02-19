@@ -7,6 +7,7 @@ using namespace std::chrono_literals;
 
 inline static uint64_t usable_id = 0;
 constexpr std::chrono::microseconds TIMEOUT = 1000ms;
+constexpr std::chrono::microseconds ACK_CHECK = 500ms;
 
 FalconServer::~FalconServer()
 {
@@ -52,6 +53,7 @@ uint32_t FalconServer::GetNewStreamID(bool reliable, uint64_t client)
 void FalconServer::ThreadListen(FalconServer& server)
 {
 	std::unordered_map<uint64_t, std::chrono::steady_clock::time_point> client_timeout;
+	std::chrono::steady_clock::time_point ack_check = std::chrono::steady_clock::now();
 	while (server.m_listen)
 	{
 		std::array<char, 65535> buffer;
@@ -157,12 +159,31 @@ void FalconServer::ThreadListen(FalconServer& server)
 				server.m_streams.at(client_id).at(stream_id)->OnDataReceived(buffer);
 			}
 			case DATA_ACK:
-				//if(server)
+				if (server.m_streams_ack.contains(client_id))
+				{
+					uint32_t stream_id;
+					memcpy(&stream_id, &buffer[7], sizeof(stream_id));
+					if (server.m_streams_ack.at(client_id).contains(stream_id))
+					{
+						server.m_streams_ack.at(client_id).erase(stream_id);
+					}
+				}
 				break;
 			}
-			
-
 		}
+		if (duration_cast<std::chrono::milliseconds>(std::chrono::steady_clock::now() - ack_check) > ACK_CHECK)
+		{
+			for (auto& pair : server.m_streams_ack)
+			{
+				for (auto& stream_pair : pair.second)
+				{
+					server.m_streams.at(pair.first).at(stream_pair.first)->SendData(stream_pair.second);
+				}
+				
+			}
+			ack_check = std::chrono::steady_clock::now();
+		}
+
 		std::vector<uint64_t> disconnected_client;
 		disconnected_client.reserve(client_timeout.size());
 		for (const auto& pair : client_timeout)
@@ -189,7 +210,10 @@ void FalconServer::SendData(std::span<const char> data, uint64_t client_id, uint
 	if (m_streams.at(client_id).at(stream_id))
 	{
 		m_streams.at(client_id).at(stream_id)->SendData(data);
-		m_stream_ack[client_id].insert({ stream_id, false });
+		if (stream_id & 1 << 31)
+		{
+			m_streams_ack[client_id].insert({ stream_id, data });
+		}
 	}
 }
 
