@@ -6,11 +6,15 @@
 using namespace std::chrono_literals;
 
 constexpr std::chrono::microseconds TIMEOUT = 1000ms;
+constexpr std::chrono::microseconds ACK_CHECK = 500ms;
 
 FalconClient::~FalconClient()
 {
 	m_listen = false;
-	m_listener.join();
+	if(m_listener.joinable())
+	{
+		m_listener.join();
+	}
 }
 
 void FalconClient::ConnectTo(const std::string& ip, uint16_t port)
@@ -54,6 +58,10 @@ void FalconClient::SendData(std::span<const char> data, uint32_t stream_id)
 	if(m_streams.contains(stream_id))
 	{
 		m_streams.at(stream_id)->SendData(data);
+		if (stream_id & 1 << 31)
+		{
+			m_streams_ack.insert({ stream_id, data });
+		}
 	}
 }
 
@@ -61,6 +69,7 @@ void FalconClient::ThreadListen(FalconClient& client)
 {
 	std::chrono::steady_clock::time_point start = std::chrono::steady_clock::now();
 	std::chrono::steady_clock::time_point timeout_timer = start;
+	std::chrono::steady_clock::time_point ack_check = std::chrono::steady_clock::now();
 
 	uint16_t ping_id = 0;
 
@@ -136,6 +145,14 @@ void FalconClient::ThreadListen(FalconClient& client)
 			}
 				break;
 			case DATA_ACK:
+				{
+					uint32_t stream_id;
+					memcpy(&stream_id, &buffer[7], sizeof(stream_id));
+					if (client.m_streams_ack.contains(stream_id))
+					{
+						client.m_streams_ack.erase(stream_id);
+					}
+				}
 				break;
 			}
 		}
@@ -161,6 +178,14 @@ void FalconClient::ThreadListen(FalconClient& client)
 				}
 
 			}
+		}
+		if (duration_cast<std::chrono::milliseconds>(std::chrono::steady_clock::now() - ack_check) > ACK_CHECK)
+		{
+			for (auto& pair : client.m_streams_ack)
+			{			
+				client.m_streams.at(pair.first)->SendData(pair.second);
+			}
+			ack_check = std::chrono::steady_clock::now();
 		}
 	}
 }
@@ -195,7 +220,7 @@ uint32_t FalconClient::GetNewStreamID(bool reliable)
 	m_lastUsedStreamID++;
 
 	if (reliable)
-		id = id & (1 << 31);
+		id = id | (1 << 31);
 
 	return id;
 }
