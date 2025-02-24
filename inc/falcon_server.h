@@ -30,8 +30,6 @@ public :
     std::unique_ptr<Stream> CreateStream(uint64_t client, bool reliable);
     void CloseStream(const Stream& stream);
 
-    std::unordered_map<uint64_t, uint32_t> m_lastUsedStreamID;
-    uint32_t GetNewStreamID(bool reliable, uint64_t client);
 
     void SendData(std::span<const char> data, uint64_t client_id, uint32_t stream_id);
 
@@ -39,6 +37,8 @@ public :
     const std::unordered_map<uint64_t, std::map<uint32_t, std::span<const char>>>& GetStreamsAck() const { return m_streams_ack; }
 
 private:
+    std::unordered_map<uint64_t, uint32_t> m_lastUsedStreamID;
+    uint32_t GetNewStreamID(bool reliable, uint64_t client);
     std::unique_ptr<Stream> MakeStream(uint32_t stream_id, uint64_t client, bool reliable);
 
 
@@ -53,4 +53,7 @@ private:
     std::unordered_map<uint64_t, std::vector<std::unique_ptr<Stream>>> m_local_streams;
 
     uint32_t m_active_client_count{};
+
+    constexpr static uint32_t SERVER_STREAM_BIT = 1 << 30;
+    constexpr static uint32_t RELIABLE_STREAM_BIT = 1 << 31;
 };

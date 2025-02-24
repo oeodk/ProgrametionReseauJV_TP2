@@ -1,7 +1,10 @@
 ﻿#include "Stream.h"
 #include "message_type.h"
 #include <string>
+#include <mutex>
+#include <chrono>
 
+using namespace std::chrono_literals;
 constexpr int HEADER_SIZE = 184;
 
 Stream::Stream(uint32_t _stream_id, uint64_t _client_uuid, IpPortPair _target, Falcon* _socket):
@@ -84,8 +87,7 @@ void Stream::SendDataPart(uint8_t part_id, uint8_t part_total, std::span<const c
 	memcpy(&message[current_pos], &message_id, sizeof(message_id));
 	current_pos += sizeof(message_id);
 
-	memcpy(&message[current_pos], &data, sizeof(data));
-
+	memcpy(&message[current_pos], data.data(), data.size() * sizeof(char));
 	socket->SendTo(target.ip, target.port, message);
 }
 
@@ -119,6 +121,6 @@ void Stream::OnDataReceived(std::span<const char> data) {
 
 	socket->SendTo(target.ip, target.port, message);
 
-	memcpy(&data, &data, sizeof(data_size));
-
+	m_last_data.resize(data_size);
+	memcpy(m_last_data.data(), &data[21], data_size);
 }

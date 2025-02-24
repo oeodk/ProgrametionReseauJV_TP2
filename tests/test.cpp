@@ -215,6 +215,7 @@ TEST_CASE("Can close stream", "[falcon]")
     std::this_thread::sleep_for(500ms);
     auto stream = client.CreateStream(true);
     auto streamId = stream->GetStreamID();
+    client.SendData("helo", streamId);
     std::this_thread::sleep_for(500ms);
 
     auto& serverStreams = server.GetStreams();
@@ -227,4 +228,27 @@ TEST_CASE("Can close stream", "[falcon]")
     std::this_thread::sleep_for(500ms);
 
     REQUIRE(client.GetStreams().contains(client.GetId()) == false);
+}
+
+TEST_CASE("Can receive data", "[falcon]")
+{
+    FalconServer server;
+
+    server.Listen(5555);
+
+    FalconClient client;
+    client.ConnectTo("127.0.0.1", 5555);
+    std::this_thread::sleep_for(500ms);
+    auto client_stream = client.CreateStream(true);
+
+    client_stream->SetFlag(8, true);
+    std::string msg("helo");
+
+    auto streamId = client_stream->GetStreamID();
+    client.SendData(msg, streamId);
+    std::this_thread::sleep_for(500ms);
+    auto server_stream = server.GetStreams().at(client.GetId()).at(streamId);
+
+    REQUIRE(server_stream->getLastData() == msg);
+    REQUIRE(server_stream->GetFlag(8) == true);
 }

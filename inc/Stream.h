@@ -16,6 +16,7 @@ private:
     IpPortPair target;
     Falcon* socket;
 
+    std::string m_last_data = "";
 public:
     Stream(uint32_t stream_id, uint64_t client_uuid, IpPortPair target, Falcon* socket);
     ~Stream();
@@ -35,6 +36,8 @@ public:
 
     void SendData(std::span<const char> data);
     void OnDataReceived(std::span<const char> data);
+
+    const std::string& getLastData() const { return m_last_data; }
 protected:
     void SendDataPart(uint8_t part_id, uint8_t part_total, std::span<const char> data);
 };

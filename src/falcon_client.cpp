@@ -123,14 +123,6 @@ void FalconClient::ThreadListen(FalconClient& client)
 				spdlog::debug("Pong received");
 			}
 			break;
-			case CREATE_STREAM:
-			{
-				uint32_t stream_id;
-				memcpy(&stream_id, &buffer[11], sizeof(stream_id));
-
-				client.m_local_streams.emplace_back(client.MakeStream(stream_id, stream_id & 1 << 31));
-			}
-			break;
 			case CLOSE_STREAM:
 			{
 				uint32_t stream_id;
@@ -152,6 +144,11 @@ void FalconClient::ThreadListen(FalconClient& client)
 			{
 				uint32_t stream_id;
 				memcpy(&stream_id, &buffer[11], sizeof(stream_id));
+
+				if (!client.m_streams.contains(stream_id))
+				{
+					client.m_local_streams.push_back(client.MakeStream(stream_id, stream_id & RELIABLE_STREAM_BIT));
+				}
 				client.m_streams.at(stream_id)->OnDataReceived(buffer);
 			}
 				break;
@@ -214,22 +211,7 @@ std::unique_ptr<Stream> FalconClient::MakeStream(uint32_t stream_id, bool reliab
 }
 
 std::unique_ptr<Stream> FalconClient::CreateStream(bool reliable) {
-	uint32_t stream_id = GetNewStreamID(reliable);
-
-	std::unique_ptr<Stream> stream = MakeStream(stream_id, reliable);
-
-	uint16_t msg_size = 15;
-	std::string message;
-	message.resize(msg_size);
-	
-	message[0] = CREATE_STREAM;
-	memcpy(&message[1], &msg_size, sizeof(msg_size));
-	memcpy(&message[3], &m_id, sizeof(m_id));
-	memcpy(&message[11], &stream_id, sizeof(stream_id));
-
-	SendTo(server.ip, server.port, message);
-
-	return stream;
+	return MakeStream(GetNewStreamID(reliable), reliable);
 }
 
 uint32_t FalconClient::GetNewStreamID(bool reliable)
@@ -238,7 +220,7 @@ uint32_t FalconClient::GetNewStreamID(bool reliable)
 	m_lastUsedStreamID++;
 
 	if (reliable)
-		id = id | (1 << 31);
+		id = id | RELIABLE_STREAM_BIT;
 
 	return id;
 }

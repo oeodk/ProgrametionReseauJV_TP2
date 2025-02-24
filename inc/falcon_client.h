@@ -26,8 +26,6 @@ public :
 
     bool IsConnected() const { return m_connected; }
 
-    uint32_t m_lastUsedStreamID = 0;
-    uint32_t GetNewStreamID(bool reliable);
 
     uint64_t GetId() const { return m_id; }
 
@@ -38,6 +36,8 @@ public :
 
     std::unique_ptr<Stream> CreateStream(bool reliable);
 private :    
+    uint32_t m_lastUsedStreamID = 0;
+    uint32_t GetNewStreamID(bool reliable);
     std::unique_ptr<Stream> MakeStream(uint32_t stream_id, bool reliable);
 
     std::vector<std::unique_ptr<Stream>> m_local_streams;
@@ -49,4 +49,8 @@ private :
     std::map<uint32_t, Stream*> m_streams;
     std::map<uint32_t, std::span<const char>> m_streams_ack;
     bool m_connected = false;
+
+
+    constexpr static uint32_t CLIENT_STREAM_BIT = ~(1 << 30);
+    constexpr static uint32_t RELIABLE_STREAM_BIT = 1 << 31;
 };

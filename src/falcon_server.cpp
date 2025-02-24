@@ -47,7 +47,9 @@ uint32_t FalconServer::GetNewStreamID(bool reliable, uint64_t client)
 	uint32_t id = m_lastUsedStreamID[client]++;
 
 	if (reliable)
-		id = id | (1 << 31);
+		id = id | RELIABLE_STREAM_BIT;
+
+	id = id | SERVER_STREAM_BIT;
 
 	return id;
 }
@@ -119,27 +121,16 @@ void FalconServer::ThreadListen(FalconServer& server)
 				spdlog::debug("Ping received from " + std::to_string(client_id));
 
 				std::string pong_msg;
-				std::chrono::system_clock::time_point time = std::chrono::system_clock::now();;
-				const uint16_t msg_size = 13 + sizeof(time);
+				const uint16_t msg_size = 13 + sizeof(std::chrono::system_clock::time_point);
 				pong_msg.resize(msg_size);
-
-				uint16_t pong_id;
-				memcpy(&pong_id, &buffer[11], sizeof(pong_id));
 
 				pong_msg[0] = PONG;
 				memcpy(&pong_msg[1], &msg_size, sizeof(msg_size));
 				memcpy(&pong_msg[3], &client_id, sizeof(client_id));
-				memcpy(&pong_msg[11], &pong_id, sizeof(pong_id));
-				memcpy(&pong_msg[13], &time, sizeof(time));
+				memcpy(&pong_msg[11], &buffer[11], sizeof(uint16_t));
+				
+				memcpy(&pong_msg[13], &buffer[13], sizeof(std::chrono::system_clock::time_point));
 				server.SendTo(server.m_clients.at(client_id).ip, server.m_clients.at(client_id).port, pong_msg);
-			}
-				break;
-			case CREATE_STREAM:
-			{
-				uint32_t stream_id;
-				memcpy(&stream_id, &buffer[11], sizeof(stream_id));
-
-				server.m_local_streams[client_id].push_back(server.MakeStream(stream_id, client_id, (stream_id & 1 << 31)));
 			}
 				break;
 			case CLOSE_STREAM:
@@ -167,6 +158,10 @@ void FalconServer::ThreadListen(FalconServer& server)
 			{
 				uint32_t stream_id;
 				memcpy(&stream_id, &buffer[11], sizeof(stream_id));
+				if (!server.m_streams[client_id].contains(stream_id))
+				{
+					server.m_local_streams[client_id].push_back(server.MakeStream(stream_id, client_id, stream_id));
+				}
 				server.m_streams.at(client_id).at(stream_id)->OnDataReceived(buffer);
 			}
 			case DATA_ACK:
@@ -247,22 +242,7 @@ std::unique_ptr<Stream> FalconServer::MakeStream(uint32_t stream_id, uint64_t cl
 std::unique_ptr<Stream> FalconServer::CreateStream(uint64_t client, bool reliable) {
 	if(m_clients.contains(client))
 	{
-		uint32_t stream_id = GetNewStreamID(reliable, client);
-		
-		std::unique_ptr<Stream> stream = MakeStream(stream_id, client, reliable);
-
-		uint16_t msg_size = 15;
-		std::string message;
-		message.resize(msg_size);
-
-		message[0] = CREATE_STREAM;
-		memcpy(&message[1], &msg_size, sizeof(msg_size));
-		memcpy(&message[3], &client, sizeof(client));
-		memcpy(&message[11], &stream_id, sizeof(stream_id));
-
-		SendTo(m_clients.at(client).ip, m_clients.at(client).port, message);
-
-		return stream;
+		return MakeStream(GetNewStreamID(reliable, client), client, reliable);
 	}
 	return nullptr;
 }
